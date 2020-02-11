@@ -48,6 +48,11 @@ for(i in 1:nrow(markers)){
 
 rm(temp)
 
+# lets get rid of the : after the speakers name as it is the first character at the 
+# beginning of each response
+
+answers$comment = gsub(": ", "", answers$comment)
+
 # Ok now we have the answers to the questions and the name of the respondent 
 # I think this is a more familiar way of working with data for R users... perhaps there is some
 # use to having it as a blob, but i prefer this
