@@ -57,3 +57,30 @@ answers$comment = gsub(": ", "", answers$comment)
 # I think this is a more familiar way of working with data for R users... perhaps there is some
 # use to having it as a blob, but i prefer this
 head(answers)
+
+
+######## IMDB WEBSITE
+
+url="http://www.imdb.com/search/title?year=2017&title_type=feature&"
+
+#Reading the HTML code from the website
+webpage = read_html(url)
+
+#CSS selectors to scrap the rankings section
+rank_data_html = html_nodes(webpage,'.text-primary')%>%
+  html_text()
+
+class(rank_data_html)
+
+# create a movies dataframe
+movies = data.frame(
+  rank = html_nodes(webpage, '.text-primary')%>%html_text()%>%extract_numeric(),
+  title = html_nodes(webpage,'.lister-item-header a')%>%html_text(),
+  run_time = html_nodes(webpage,' .runtime')%>%html_text()%>%extract_numeric(),
+  genre = gsub("\n", "", html_nodes(webpage,'.genre')%>%html_text()),
+  primary_genre = gsub(",.*", "", gsub("\n", "", html_nodes(webpage,'.genre')%>%html_text()))
+)
+
+
+barplot(table(movies_df$Genre))
+
