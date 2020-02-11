@@ -5,55 +5,50 @@
 library(rvest)
 library(stringr)
 
-url="https://www.washingtonpost.com/news/the-fix/wp/2016/09/26/the-first-trump-clinton-presidential-debate-transcript-annotated/?utm_term=.76c25871d72c"
+# The original washington post article is now behind a paywall so I am subbing it out for a transcript
+# of the debate itself.
 
+# I am also going to change the end goal of this. Lets try and get this into a format that can
+# be used by tidytext. IE a dataframe.
+
+# new transcript source
+url="https://www.debates.org/voter-education/debate-transcripts/september-26-2016-debate-transcript/"
+
+# once again we read the url
 t_link=read_html(url)
 
-#to extract out the relevant html tag for the transcript 
-transcript = t_link %>% html_nodes("#main-content") %>% html_text()
+# use the xpath to the container for the entire debate!
+transcript = t_link %>% html_nodes(xpath= '//*[@id="content-sm"]') %>% html_text()
 
 ##unstructured text
+transcript
 
 # We have 3 different patterns/speakers to search for 
-#which will include in our expression using the or operator '|'
+# which will include in our expression using the or operator '|'
 # str_locate_all of stringr will give the index (start and end position) of all the matches
-markers <- str_locate_all(transcript, pattern = "CLINTON|TRUMP|HOLT")
+markers <- str_locate_all(transcript, pattern = "CLINTON|TRUMP|HOLT")[[1]]%>%as.data.frame()
 
 head(markers)
 
-# This returns a list with one component - we extract out that component
-markers = markers[[1]]
+# I am sure there is a more efficient way of doing this but lets start with this:
 
-# Now markers is a matrix indicating the start and end positions
-#  extract start positions
-markers =markers[,1]
+# initiate data frame outside of loop
+answers = data.frame()
 
-#substr pulls out text chunks
+substr(transcript, markers$end[1]+1, markers$start[2]-1)
 
-##text chunks relating to Trump, clinton and holt
+# for each element in the loop, get the name of the speaker and the content 
+for(i in 1:nrow(markers)){
+  temp = data.frame(
+            name = substr(transcript, markers$start[i], markers$end[i]),
+            comment = substr(transcript, markers$end[i]+1, markers$start[i+1]-1)
+            )
+  answers = rbind(answers, temp)
+  }
 
-# Initialize a vector to store the results
-res = vector(mode = "character", length = length(markers) - 1)
-for (i in 1:(length(markers)-1)) {
-  res[i] <- substr(transcript,markers[i],markers[i+1]-1)
-  
-}
+rm(temp)
 
-#identfiy and store chunks spoken by Trump and Clinton 
-
-clinton = res[sapply(res,function(x) grepl("CLINTON",x))]
-trump = res[sapply(res,function(x) grepl("TRUMP",x))]
-head(res)
-
-tot_words_t = unlist(sapply(trump, function(x) str_split(x, " ")))
-
-# exclude blank values  
-tot_words_t = tot_words_t[tot_words_t != ""]
-length(tot_words_t)
-
-#most common words?
-library(plyr)
-
-w_freq=count(tot_words_t) %>% arrange(desc(freq))
-
-head(w_freq,n=20)
+# Ok now we have the answers to the questions and the name of the respondent 
+# I think this is a more familiar way of working with data for R users... perhaps there is some
+# use to having it as a blob, but i prefer this
+head(answers)
