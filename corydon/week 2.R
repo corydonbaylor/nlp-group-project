@@ -26,7 +26,8 @@ rank <- as.numeric(html_text(rank))
 # Save it to a tibble
 top_artists <- tibble('Artist' = gsub("\n", "", artist),   #remove the \n character in the artist's name
                       'Rank' = rank) %>%
-  filter(rank <= 10)
+  filter(rank <= 10)%>%
+  mutate(Artist = gsub(" ", "-", top_artists$Artist))
 
 #Format the link to navigate to the artists genius webpage
 genius_urls <- paste0("https://genius.com/artists/",top_artists$Artist)
@@ -39,7 +40,7 @@ artist_lyrics <- tibble()
 
 # Outer loop to get the song links for each artist 
 for (i in 1:10) {
-  genius_page <- read_html(genius_urls[i])
+  genius_page <- read_html("https://genius.com/artists/Billie-eilish")
   song_links <- html_nodes(genius_page, ".mini_card_grid-song a") %>%
     html_attr("href") 
   #Inner loop to get the Song Name and Lyrics from the Song Link    
@@ -70,3 +71,32 @@ for (i in 1:10) {
 
 #Inspect the results
 artist_lyrics
+
+
+#### Lesson 14 and 15
+##################################################################
+### Read in data from Wikipedia HTML tables
+
+#Summer olympics medal tally
+
+url <- "https://en.wikipedia.org/wiki/2016_Summer_Olympics_medal_table"
+
+medal_tally <- url %>% read_html() %>% 
+  html_nodes(xpath='//*[@id="mw-content-text"]/div/table[2]') %>% html_table(fill=TRUE)
+## copy xpath
+## //*[@id="mw-content-text"]/div/table[2]
+# //*[@id="mw-content-text"]/div/table[2]
+
+medal_tally <- medal_tally[[1]]
+head(medal_tally)
+
+#WHS Sites in the UK
+
+url2="https://en.wikipedia.org/wiki/List_of_World_Heritage_Sites_in_the_United_Kingdom_and_the_British_Overseas_Territories"
+
+
+whsuk <- url2 %>% read_html() %>% 
+  html_nodes(xpath='//*[@id="mw-content-text"]/div/table[3]') %>% html_table(fill=TRUE)
+
+whsuk <- whsuk[[1]]
+head(whsuk)
