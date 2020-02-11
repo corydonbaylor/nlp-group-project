@@ -43,7 +43,7 @@ for(i in 1:nrow(markers)){
             name = substr(transcript, markers$start[i], markers$end[i]),
             comment = substr(transcript, markers$end[i]+1, markers$start[i+1]-1)
             )
-  answers = rbind(answers, temp)
+  answers = rbind(answers, temp) # my guess is that this is the inefficient part
   }
 
 rm(temp)
