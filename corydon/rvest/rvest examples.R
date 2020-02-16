@@ -1,6 +1,5 @@
 # USING WEBSCRAPPING WITH REVEST
 
-
 library(rvest)
 library(stringr)
 library(tidyr)
@@ -49,7 +48,7 @@ head(whsuk)
 
 ######## IMDB WEBSITE
 
-url="http://www.imdb.com/search/title?year=2017&title_type=feature&"
+url = "http://www.imdb.com/search/title?year=2017&title_type=feature&"
 
 #Reading the HTML code from the website
 webpage = read_html(url)
@@ -73,6 +72,15 @@ movies = data.frame(
   primary_genre = gsub(",.*", "", gsub("\n", "", html_nodes(webpage,'.genre')%>%html_text()))
 )
 
+# tidyverse detour:
+
+# tidyverse way (ie how everyone uses R)
+html_nodes(webpage, '.genre')%>%
+  html_text()%>%
+  str_replace("\n", "")
+
+# more traditional functional programming way
+str_replace(html_text(html_nodes(webpage, '.genre')), "\n", "")
 
 barplot(table(movies$primary_genre)) # neat!
 
@@ -172,10 +180,19 @@ head(markers)
 
 # I am sure there is a more efficient way of doing this but lets start with this:
 
+
+
+# how we can locate a name
+substr(transcript, markers$start[1], markers$end[1])
+substr(transcript, 251, 254)
+
+# how we can locate what they said
+substr(transcript, markers$end[1]+1, markers$start[2]-1)
+substr(transcript, 255, 1525)
+
+
 # initiate data frame outside of loop
 answers = data.frame()
-
-substr(transcript, markers$end[1]+1, markers$start[2]-1)
 
 # for each element in the loop, get the name of the speaker and the content 
 for(i in 1:nrow(markers)){
@@ -184,7 +201,8 @@ for(i in 1:nrow(markers)){
             comment = substr(transcript, markers$end[i]+1, markers$start[i+1]-1)
             )
   answers = rbind(answers, temp) # my guess is that this is the inefficient part
-  }
+}
+
 
 rm(temp)
 
