@@ -163,10 +163,10 @@ artist_lyrics
 url="https://www.debates.org/voter-education/debate-transcripts/september-26-2016-debate-transcript/"
 
 # once again we read the url
-t_link=read_html(url)
+webpage = read_html(url)
 
 # use the xpath to the container for the entire debate!
-transcript = t_link %>% html_nodes(xpath= '//*[@id="content-sm"]') %>% html_text()
+transcript = webpage %>% html_nodes(xpath= '//*[@id="content-sm"]') %>% html_text()
 
 ##unstructured text
 transcript
