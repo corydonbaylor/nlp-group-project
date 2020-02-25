@@ -381,6 +381,7 @@ summary {
 <li><a href="#what-is-an-api">What is an API?</a></li>
 <li><a href="#querying-an-apis-in-r">Querying an APIs in R</a></li>
 <li><a href="#problem-1-building-a-pokemon-dataset">Problem 1: Building a Pokemon Dataset</a></li>
+<li><a href="#problem-2-make-a-movie-dataset">Problem 2: Make a Movie Dataset</a></li>
 </ul>
 </div>
 
@@ -566,6 +567,160 @@ charizard
 </td>
 <td style="text-align:left;">
 flying
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="problem-2-make-a-movie-dataset" class="section level2 tabset tabset-fade">
+<h2>Problem 2: Make a Movie Dataset</h2>
+<div id="problem-1" class="section level3">
+<h3>Problem</h3>
+<p><a href="http://www.omdbapi.com/apikey.aspx">The Open Movie Database</a> has an API that allows users to pull data on up to 1,000 films a day for free. After you receive the API key in an email, activate the key following the link in the email. Then make a data frame that contains the title, year, MPAA rating, runtime, genre, and actors for a few of your favorite movies!</p>
+<p><br> <br> <br></p>
+</div>
+<div id="solution-1" class="section level3">
+<h3>Solution</h3>
+<pre class="r"><code>library(jsonlite)
+library(kableExtra)
+library(dplyr)
+
+films = c(&quot;Batman+Begins&quot;, &quot;The+Incredibles&quot;, &quot;The+Godfather&quot;, &quot;Parasite&quot;)
+
+ titles = c()
+ years = c()
+ ratings = c()
+ runtimes = c()
+ genres = c()
+ actors = c()
+ 
+ 
+for(i in 1:length(films)){
+
+  data = fromJSON(paste0(&quot;http://omdbapi.com/?apikey=765ce2a6&amp;t=&quot;, films[i]))
+  
+  titles = append(titles, data$Title)
+  years = append(years, data$Year)
+  ratings = append(ratings, data$Rated)
+  runtimes = append(runtimes, data$Runtime)
+  genres = append(genres, data$Genre)
+  actors = append(actors, data$Actors)
+  }
+
+ film_df = data.frame(
+   titles,
+   years,
+   ratings,
+   runtimes,
+   genres,
+   actors
+)
+
+kable(head(film_df), format = &quot;html&quot;)%&gt;%
+  kable_styling(&quot;striped&quot;)</code></pre>
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+titles
+</th>
+<th style="text-align:left;">
+years
+</th>
+<th style="text-align:left;">
+ratings
+</th>
+<th style="text-align:left;">
+runtimes
+</th>
+<th style="text-align:left;">
+genres
+</th>
+<th style="text-align:left;">
+actors
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Batman Begins
+</td>
+<td style="text-align:left;">
+2005
+</td>
+<td style="text-align:left;">
+PG-13
+</td>
+<td style="text-align:left;">
+140 min
+</td>
+<td style="text-align:left;">
+Action, Adventure, Fantasy, Thriller
+</td>
+<td style="text-align:left;">
+Christian Bale, Michael Caine, Liam Neeson, Katie Holmes
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+The Incredibles
+</td>
+<td style="text-align:left;">
+2004
+</td>
+<td style="text-align:left;">
+PG
+</td>
+<td style="text-align:left;">
+115 min
+</td>
+<td style="text-align:left;">
+Animation, Action, Adventure, Family
+</td>
+<td style="text-align:left;">
+Craig T. Nelson, Holly Hunter, Samuel L. Jackson, Jason Lee
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+The Godfather
+</td>
+<td style="text-align:left;">
+1972
+</td>
+<td style="text-align:left;">
+R
+</td>
+<td style="text-align:left;">
+175 min
+</td>
+<td style="text-align:left;">
+Crime, Drama
+</td>
+<td style="text-align:left;">
+Marlon Brando, Al Pacino, James Caan, Richard S. Castellano
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Parasite
+</td>
+<td style="text-align:left;">
+2019
+</td>
+<td style="text-align:left;">
+R
+</td>
+<td style="text-align:left;">
+132 min
+</td>
+<td style="text-align:left;">
+Comedy, Crime, Drama, Thriller
+</td>
+<td style="text-align:left;">
+Kang-ho Song, Sun-kyun Lee, Yeo-jeong Jo, Woo-sik Choi
 </td>
 </tr>
 </tbody>

@@ -115,3 +115,59 @@ kable(head(pokemon_df), format = "html")%>%
   kable_styling("striped")
 
 ```
+
+
+## Problem 2: Make a Movie Dataset {.tabset .tabset-fade}
+
+### Problem
+
+[The Open Movie Database](http://www.omdbapi.com/apikey.aspx) has an API that allows users to pull data on up to 1,000 films a day for free. After you receive the API key in an email, activate the key following the link in the email. Then make a data frame that contains the title, year, MPAA rating, runtime, genre, and actors for a few of your favorite movies!
+
+<br>
+<br>
+<br>
+
+### Solution
+
+```{r, message = F, warning = F}
+
+
+library(jsonlite)
+library(kableExtra)
+library(dplyr)
+
+films = c("Batman+Begins", "The+Incredibles", "The+Godfather", "Parasite")
+
+ titles = c()
+ years = c()
+ ratings = c()
+ runtimes = c()
+ genres = c()
+ actors = c()
+ 
+ 
+for(i in 1:length(films)){
+
+  data = fromJSON(paste0("http://omdbapi.com/?apikey=765ce2a6&t=", films[i]))
+  
+  titles = append(titles, data$Title)
+  years = append(years, data$Year)
+  ratings = append(ratings, data$Rated)
+  runtimes = append(runtimes, data$Runtime)
+  genres = append(genres, data$Genre)
+  actors = append(actors, data$Actors)
+  }
+
+ film_df = data.frame(
+   titles,
+   years,
+   ratings,
+   runtimes,
+   genres,
+   actors
+)
+
+kable(head(film_df), format = "html")%>%
+  kable_styling("striped")
+
+```
