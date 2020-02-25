@@ -8,11 +8,11 @@ library(qdap)
 
 key=""
 
-results = get_guardian("islamic+state",
+results <- get_guardian("islamic+state", 
                         section="world",
-                        from.date="2014-09-16",
-                        to.date="2014-09-16",
-                        api.key="")
+                        from.date="2014-09-16", 
+                        to.date="2014-09-16", 
+                        api.key="212d23d3-c7b2-4273-8f1b-289a0803ca4b")
 #mary+jane+smith
 head(results)
 
