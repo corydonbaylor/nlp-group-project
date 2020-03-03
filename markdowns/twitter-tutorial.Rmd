@@ -11,32 +11,46 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Getting Started
+
+### Getting a Developer Account
+caitlin -  youtube video
+
+### Saving Credentials in a .gitignore
+corydon
+
 ## rtweet
 
 explantion on what rtweet is: corydon
 
-```{r cars}
-summary(cars)
-```
+### Retrieving Topics
+caitlin
 
-## Setting Up an Twitter Developer Account
-caitlin -  youtube video
+### User Data
+caitlin
 
-### Saving Credentials in a .gitignore
+### Posting a tweet
+Corydon
 
-## Retrieving Topics
+
+
+## TwitteR
+
+### Retrieving Topics
 
 Michael Bunting
 
-## User Tweets
+### User Tweets
 
 Michael Bunting
+
+
 
 ## Example 1: For users 
 
 ## Example 2:
 
-### Conclusion
+## Conclusion
 ```{r pressure, echo=FALSE}
 plot(pressure)
 ```
