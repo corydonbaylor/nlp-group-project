@@ -1,0 +1,44 @@
+---
+title: "Twitter Data with rtweet"
+author: "Team Hanley NLP Working Group"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## rtweet
+
+explantion on what rtweet is: corydon
+
+```{r cars}
+summary(cars)
+```
+
+## Setting Up an Twitter Developer Account
+caitlin -  youtube video
+
+### Saving Credentials in a .gitignore
+
+## Retrieving Topics
+
+Michael Bunting
+
+## User Tweets
+
+Michael Bunting
+
+## Example 1: For users 
+
+## Example 2:
+
+### Conclusion
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
