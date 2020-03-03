@@ -6,6 +6,12 @@ output:
     toc: TRUE
     toc_depth: 2
 ---
+```{r, include=F}
+
+source("../keys.R")
+
+```
+
 
 ## What is an API?
 An API stands for Application Program Interface, which may sound complicated, but all it is is a way for different programs to talk to each other. In this tutorial, we will go over a particular subset of APIs called RESTful APIs, which is simply a design pattern or type of APIs that is designed to be easy to use.
@@ -55,6 +61,19 @@ ditto = fromJSON("https://pokeapi.co/api/v2/pokemon/ditto")
 ditto$species$name
 
 ```
+
+### API Tokens
+APIs need a mechanism to control who accesses their data and how many and what resources a user can access. This mechanism can exist in a few different forms. For example, the pokemon API restricts how many queries a user can execute to 100 per minute.
+
+Another common restriction is tokens. Tokens are something like a password to use with any given API. Later in this tutorial, you will need a token in order to access OMDB's API. 
+
+Like any other password, you really shouldn't share it in a public forum like github (its typically against the ToS as well). To get around this, we will store it in a variable called `key`. So I don't have to keep manually entering `key`, I typically create it in a seperate script and put that script in the [.gitignore](https://www.atlassian.com/git/tutorials/saving-changes/gitignore). This is just a special file that git will **always** ignore. 
+
+Now that we have an API Key, lets take a look at how OMDB's url to see how it fits in:
+
+`http://omdbapi.com/?apikey=<<YOUR KEY GOES HERE>>&t=<<MOVIE TITLE GOES HERE>>`
+
+Pretty simple. Put your api key after the part that says `?apikey=`. 
 
 ## Problem 1: Building a Pokemon Dataset {.tabset .tabset-fade}
 
@@ -117,15 +136,11 @@ kable(head(pokemon_df), format = "html")%>%
 ```
 
 
-## Problem 2: Make a Movie Dataset {.tabset .tabset-fade}
+## Problem 2: Making a Movie Dataset {.tabset .tabset-fade}
 
 ### Problem
 
 [The Open Movie Database](http://www.omdbapi.com/apikey.aspx) has an API that allows users to pull data on up to 1,000 films a day for free. After you receive the API key in an email, activate the key following the link in the email. Then make a data frame that contains the title, year, MPAA rating, runtime, genre, and actors for a few of your favorite movies!
-
-<br>
-<br>
-<br>
 
 ### Solution
 
@@ -148,7 +163,7 @@ films = c("Batman+Begins", "The+Incredibles", "The+Godfather", "Parasite")
  
 for(i in 1:length(films)){
 
-  data = fromJSON(paste0("http://omdbapi.com/?apikey=765ce2a6&t=", films[i]))
+  data = fromJSON(paste0("http://omdbapi.com/?apikey=", key,"&t=", films[i]))
   
   titles = append(titles, data$Title)
   years = append(years, data$Year)
@@ -171,3 +186,7 @@ kable(head(film_df), format = "html")%>%
   kable_styling("striped")
 
 ```
+## Conclusion
+APIs are designed to be a stable way for scripts, programs and applications to interact with eachother. In general, if you are text mining, you will just need to `GET` requests from an API as you are hoping to *get* data. 
+
+Since most data in APIs comes in the form of JSON files, we went over the `fromJSON()` function in `jsonlite`. However, R can do every kind of request using the `httr` package. 

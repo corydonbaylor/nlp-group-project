@@ -381,7 +381,8 @@ summary {
 <li><a href="#what-is-an-api">What is an API?</a></li>
 <li><a href="#querying-an-apis-in-r">Querying an APIs in R</a></li>
 <li><a href="#problem-1-building-a-pokemon-dataset">Problem 1: Building a Pokemon Dataset</a></li>
-<li><a href="#problem-2-make-a-movie-dataset">Problem 2: Make a Movie Dataset</a></li>
+<li><a href="#problem-2-making-a-movie-dataset">Problem 2: Making a Movie Dataset</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
 </ul>
 </div>
 
@@ -424,6 +425,15 @@ ditto = fromJSON(&quot;https://pokeapi.co/api/v2/pokemon/ditto&quot;)
 
 ditto$species$name</code></pre>
 <pre><code>## [1] &quot;ditto&quot;</code></pre>
+</div>
+<div id="api-tokens" class="section level3">
+<h3>API Tokens</h3>
+<p>APIs need a mechanism to control who accesses their data and how many and what resources a user can access. This mechanism can exist in a few different forms. For example, the pokemon API restricts how many queries a user can execute to 100 per minute.</p>
+<p>Another common restriction is tokens. Tokens are something like a password to use with any given API. Later in this tutorial, you will need a token in order to access OMDB’s API.</p>
+<p>Like any other password, you really shouldn’t share it in a public forum like github (its typically against the ToS as well). To get around this, we will store it in a variable called <code>key</code>. So I don’t have to keep manually entering <code>key</code>, I typically create it in a seperate script and put that script in the <a href="https://www.atlassian.com/git/tutorials/saving-changes/gitignore">.gitignore</a>. This is just a special file that git will <strong>always</strong> ignore.</p>
+<p>Now that we have an API Key, lets take a look at how OMDB’s url to see how it fits in:</p>
+<p><code>http://omdbapi.com/?apikey=&lt;&lt;YOUR KEY GOES HERE&gt;&gt;&amp;t=&lt;&lt;MOVIE TITLE GOES HERE&gt;&gt;</code></p>
+<p>Pretty simple. Put your api key after the part that says <code>?apikey=</code>.</p>
 </div>
 </div>
 <div id="problem-1-building-a-pokemon-dataset" class="section level2 tabset tabset-fade">
@@ -573,12 +583,11 @@ flying
 </table>
 </div>
 </div>
-<div id="problem-2-make-a-movie-dataset" class="section level2 tabset tabset-fade">
-<h2>Problem 2: Make a Movie Dataset</h2>
+<div id="problem-2-making-a-movie-dataset" class="section level2 tabset tabset-fade">
+<h2>Problem 2: Making a Movie Dataset</h2>
 <div id="problem-1" class="section level3">
 <h3>Problem</h3>
 <p><a href="http://www.omdbapi.com/apikey.aspx">The Open Movie Database</a> has an API that allows users to pull data on up to 1,000 films a day for free. After you receive the API key in an email, activate the key following the link in the email. Then make a data frame that contains the title, year, MPAA rating, runtime, genre, and actors for a few of your favorite movies!</p>
-<p><br> <br> <br></p>
 </div>
 <div id="solution-1" class="section level3">
 <h3>Solution</h3>
@@ -598,7 +607,7 @@ films = c(&quot;Batman+Begins&quot;, &quot;The+Incredibles&quot;, &quot;The+Godf
  
 for(i in 1:length(films)){
 
-  data = fromJSON(paste0(&quot;http://omdbapi.com/?apikey=765ce2a6&amp;t=&quot;, films[i]))
+  data = fromJSON(paste0(&quot;http://omdbapi.com/?apikey=&quot;, key,&quot;&amp;t=&quot;, films[i]))
   
   titles = append(titles, data$Title)
   years = append(years, data$Year)
@@ -726,6 +735,11 @@ Kang-ho Song, Sun-kyun Lee, Yeo-jeong Jo, Woo-sik Choi
 </tbody>
 </table>
 </div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>APIs are designed to be a stable way for scripts, programs and applications to interact with eachother. In general, if you are text mining, you will just need to <code>GET</code> requests from an API as you are hoping to <em>get</em> data.</p>
+<p>Since most data in APIs comes in the form of JSON files, we went over the <code>fromJSON()</code> function in <code>jsonlite</code>. However, R can do every kind of request using the <code>httr</code> package.</p>
 </div>
 
 
