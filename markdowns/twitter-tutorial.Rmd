@@ -7,6 +7,12 @@ output:
     toc_depth: 2
 ---
 
+```{r, include=F}
+
+source("../keys.R")
+
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -41,14 +47,65 @@ Corydon
 
 ## TwitteR
 
+TwitteR is a package providing access to Twitter's API, "with a bias towards API calls that are more useful in data analysis as opposed to daily interaction," according to [rdocumentation.org](https://www.rdocumentation.org/packages/twitteR/versions/1.1.9). It supports a number of functions, including retrieving trends and tweets with users' handles.  
+
 ### Retrieving Topics
 
-Michael Bunting
+To retrieve a trending topic, you can start by going to Twitter to see what matters to the world: 
+
+![](C:/Users/603281/Desktop/NLP_R_Practice/nlp_github_repo/nlp-group-project/michael/images/caturday.PNG)
+
+It appears people like cats for some reason. No matter -- let's see if we can retrieve the last 500 tweets with the trending "#Caturday" hashtag.
+
+First, call the twitteR package and run the `setup_twitter_oauth` function, which will set up your credentials for the twitteR session.
+
+```{r, message=F, warning=F}
+library(twitteR)
+setup_twitter_oauth(twitter_api_key, twitter_api_secret_key,
+                     twitter_access_token, twitter_access_token_secret)
+```
+
+Notice the keys and tokens in the `setup_twitter_oauth` function above. I've already read these keys into variables saved in the global environment. 
+
+Next, create an object to store the string you want to search, set the number of tweets you wish to pull, and run the `searchTwitter` function. Notice you can set the "lang" argument to search for tweets in specific languages. I set lang equal to "en" for tweets in English.  
+
+```{r, message=F, warning=F}
+catweets <- searchTwitter('#Caturday', n = 10, lang='en')
+```
+
+Finally, put the retrieved tweets into a dataframe.
+
+```{r, message=F, warning=F}
+df <- do.call("rbind", lapply(catweets, as.data.frame))
+
+library(kableExtra)
+
+kable(df[1:2,1:2], format = "html")%>%
+  kable_styling("striped")
+```
 
 ### User Tweets
 
-Michael Bunting
+You can also retrieve tweets containing a user's handle. Let's see what the esteemed Gordon Ramsay is up to.
 
+![](C:/Users/603281/Desktop/NLP_R_Practice/nlp_github_repo/nlp-group-project/michael/images/giphy.gif)
+
+First, let's run the `searchTwitter` function for 100 tweets with the handle "@GordonRamsay".
+
+```{r, message=F, warning=F}
+tweets_gordon <- searchTwitter('@GordonRamsay', n = 100)
+```
+
+Then, let's get the text from those tweets.
+
+```{r, message=F, warning=F}
+feed_gordon = plyr::laply(tweets_gordon, function(t) t$getText())
+
+kable(head(feed_gordon), format = "html")%>%
+  kable_styling("striped")
+```
+
+Ta-da.
 
 
 ## Example 1: For users 
