@@ -74,7 +74,7 @@ TwitteR is a package providing access to Twitter's API, "with a bias towards API
 
 To retrieve a trending topic, you can start by going to Twitter to see what matters to the world: 
 
-![](C:/Users/603281/Desktop/NLP_R_Practice/nlp_github_repo/nlp-group-project/michael/images/caturday.PNG)
+![](images/caturday.PNG)
 
 It appears people like cats for some reason. No matter -- let's see if we can retrieve the last 500 tweets with the trending "#Caturday" hashtag.
 
@@ -109,7 +109,7 @@ kable(df[1:2,1:2], format = "html")%>%
 
 You can also retrieve tweets containing a user's handle. Let's see what the esteemed Gordon Ramsay is up to.
 
-![](C:/Users/603281/Desktop/NLP_R_Practice/nlp_github_repo/nlp-group-project/michael/images/giphy.gif)
+![](images/giphy.gif)
 
 First, let's run the `searchTwitter` function for 100 tweets with the handle "@GordonRamsay".
 
