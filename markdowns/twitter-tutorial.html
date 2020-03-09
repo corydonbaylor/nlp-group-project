@@ -429,15 +429,13 @@ setup_twitter_oauth(twitter_api_key, twitter_api_secret_key,
 <pre><code>## [1] &quot;Using direct authentication&quot;</code></pre>
 <p>Notice the keys and tokens in the <code>setup_twitter_oauth</code> function above. I’ve already read these keys into variables saved in the global environment.</p>
 <p>Next, create an object to store the string you want to search, set the number of tweets you wish to pull, and run the <code>searchTwitter</code> function. Notice you can set the “lang” argument to search for tweets in specific languages. I set lang equal to “en” for tweets in English.</p>
-<pre class="r"><code>search.string &lt;- '#Caturday'
-no.of.tweets &lt;- 10
-catweets &lt;- searchTwitter(search.string, n = no.of.tweets, lang='en')</code></pre>
+<pre class="r"><code>catweets &lt;- searchTwitter('#Caturday', n = 10, lang='en')</code></pre>
 <p>Finally, put the retrieved tweets into a dataframe.</p>
 <pre class="r"><code>df &lt;- do.call(&quot;rbind&quot;, lapply(catweets, as.data.frame))
 
 library(kableExtra)
 
-kable(head(df), format = &quot;html&quot;)%&gt;%
+kable(df[1:2,1:2], format = &quot;html&quot;)%&gt;%
   kable_styling(&quot;striped&quot;)</code></pre>
 <table class="table table-striped" style="margin-left: auto; margin-right: auto;">
 <thead>
@@ -448,353 +446,23 @@ text
 <th style="text-align:left;">
 favorited
 </th>
-<th style="text-align:right;">
-favoriteCount
-</th>
-<th style="text-align:left;">
-replyToSN
-</th>
-<th style="text-align:left;">
-created
-</th>
-<th style="text-align:left;">
-truncated
-</th>
-<th style="text-align:left;">
-replyToSID
-</th>
-<th style="text-align:left;">
-id
-</th>
-<th style="text-align:left;">
-replyToUID
-</th>
-<th style="text-align:left;">
-statusSource
-</th>
-<th style="text-align:left;">
-screenName
-</th>
-<th style="text-align:right;">
-retweetCount
-</th>
-<th style="text-align:left;">
-isRetweet
-</th>
-<th style="text-align:left;">
-retweeted
-</th>
-<th style="text-align:left;">
-longitude
-</th>
-<th style="text-align:left;">
-latitude
-</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-<p>RT <span class="citation">@Oriland</span>: Miaaaowrrrrvelous Rainbow #Kittens :-) Happy #Origami #Caturday! Bon chamedi d’origami! Miaaaaaaow</p>
-Diagrams of Kittens @ &quot;Papâ¦
+RT <span class="citation">@_HelenDale</span>: Chilli sees you &amp;amp; disapproves this #Caturday morning. <a href="https://t.co/ZL8MUOAYWi" class="uri">https://t.co/ZL8MUOAYWi</a>
 </td>
 <td style="text-align:left;">
 FALSE
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-2020-03-08 20:15:02
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-1236747274316910594
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-&lt;a href=“<a href="http://twitter.com/download/android" class="uri">http://twitter.com/download/android</a>” rel=“nofollow”&gt;Twitter for Android&lt;/a&gt;
-</td>
-<td style="text-align:left;">
-LovesVintage43
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-RT <span class="citation">@MinWag3MaxRag3</span>: Happy #Caturday! This cat’s a more polite customer than anyone featured on this account. <a href="https://t.co/PeQjj8AOqE" class="uri">https://t.co/PeQjj8AOqE</a>
+RT <span class="citation">@S_um_mer0</span>: ð»ð»ð»ð»ð» ððððð <em>Good</em> âºï¸âºï¸âºï¸ <em>Morning</em> âºï¸âºï¸âºï¸ <em>Friends</em> âºï¸âºï¸âºï¸ ððððð ð¼ð½ð¼ð½ð¼ð½â¦
 </td>
 <td style="text-align:left;">
 FALSE
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-2020-03-08 20:14:57
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-1236747254171684864
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-&lt;a href=“<a href="http://twitter.com/download/iphone" class="uri">http://twitter.com/download/iphone</a>” rel=“nofollow”&gt;Twitter for iPhone&lt;/a&gt;
-</td>
-<td style="text-align:left;">
-nocureforfooIs
-</td>
-<td style="text-align:right;">
-219
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Idk how to explain this but when Luna goes she puckers her mouth and her whiskers move back and forth for every pusâ¦ <a href="https://t.co/RpiUluUkE4" class="uri">https://t.co/RpiUluUkE4</a>
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-2020-03-08 20:14:13
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-1236747067596259328
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-&lt;a href=“<a href="http://twitter.com/download/android" class="uri">http://twitter.com/download/android</a>” rel=“nofollow”&gt;Twitter for Android&lt;/a&gt;
-</td>
-<td style="text-align:left;">
-l_Dflores
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-<p>RT <span class="citation">@realrobinhood18</span>: #Caturday</p>
-<p>“Think my cat just activated my dogs turbo-mode…wait for it”</p>
-ð¹ig: InstaCats <a href="https://t.co/t9pMjvhPJ3" class="uri">https://t.co/t9pMjvhPJ3</a>
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-2020-03-08 20:14:03
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-1236747025275916289
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-&lt;a href=“<a href="http://twitter.com/download/iphone" class="uri">http://twitter.com/download/iphone</a>” rel=“nofollow”&gt;Twitter for iPhone&lt;/a&gt;
-</td>
-<td style="text-align:left;">
-Allieswish
-</td>
-<td style="text-align:right;">
-383
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-RT <span class="citation">@yoruguaenusa</span>: When you think you find the perfect cat and he carries the mouse over to food bowl so they can dine together #Caturday htâ¦
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-2020-03-08 20:13:47
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-1236746961530671104
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-&lt;a href=“<a href="http://twitter.com/download/android" class="uri">http://twitter.com/download/android</a>” rel=“nofollow”&gt;Twitter for Android&lt;/a&gt;
-</td>
-<td style="text-align:left;">
-Zoey_1976
-</td>
-<td style="text-align:right;">
-1442
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-<p>RT <span class="citation">@statis_man</span>: finally he found a use for his tail</p>
-#SundayThoughts #SundayMotivation #SundayMorning #CatsOfTwitter #catsofinstagram #Catuâ¦
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-2020-03-08 20:13:46
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-1236746955453280256
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-&lt;a href=“<a href="http://twitter.com/download/android" class="uri">http://twitter.com/download/android</a>” rel=“nofollow”&gt;Twitter for Android&lt;/a&gt;
-</td>
-<td style="text-align:left;">
-TrishaK0430
-</td>
-<td style="text-align:right;">
-52
-</td>
-<td style="text-align:left;">
-TRUE
-</td>
-<td style="text-align:left;">
-FALSE
-</td>
-<td style="text-align:left;">
-NA
-</td>
-<td style="text-align:left;">
-NA
 </td>
 </tr>
 </tbody>
@@ -822,32 +490,32 @@ x
 <tbody>
 <tr>
 <td style="text-align:left;">
-<span class="citation">@GordonRamsay</span> <span class="citation">@StephenGraham73</span> <span class="citation">@StephenMulhern</span> <span class="citation">@MichaelMcIntyre</span> <span class="citation">@Ginofantastico</span> <a href="https://t.co/OfTdO5lZPe" class="uri">https://t.co/OfTdO5lZPe</a>
+<span class="citation">@c2des</span> <span class="citation">@danieljohnsalt</span> <span class="citation">@GordonRamsay</span> <a href="https://t.co/KNMDDC8JCk" class="uri">https://t.co/KNMDDC8JCk</a>
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-RT <span class="citation">@fredsirieix1</span>: Weâre back! ðºð¥ <span class="citation">@GordonRamsay</span> <span class="citation">@Ginofantastico</span> <span class="citation">@itv</span> #GordonGinoandFred <a href="https://t.co/3oCnGJWI83" class="uri">https://t.co/3oCnGJWI83</a>
+<span class="citation">@GordonRamsay</span> <span class="citation">@GordonRamsayGRR</span> Seriously If this was the served to you <span class="citation">@HellsKitchenID</span> <span class="citation">@HellsKitchenFOXâ</span>¦ <a href="https://t.co/kdPuI0T49I" class="uri">https://t.co/kdPuI0T49I</a>
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-<span class="citation">@GordonRamsay</span> my 5 year old prepared this what do you think <a href="https://t.co/tzRjYHqtwr" class="uri">https://t.co/tzRjYHqtwr</a>
+RT <span class="citation">@GordonRamsay</span>: Introducing the B&amp;amp;G Dog at Gordon Ramsay Bar and Grill !! <span class="citation">@GordonRamsayGRR</span> <a href="https://t.co/wVGOcFczGN" class="uri">https://t.co/wVGOcFczGN</a>
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-RT <span class="citation">@GordonRamsay</span>: This #internationalwomensday I want to salute all the amazing female members of staff across the US. From #GRHellsKitchenâ¦
+RT <span class="citation">@GordonRamsay</span>: <a href="https://t.co/3It1IZHQX5" class="uri">https://t.co/3It1IZHQX5</a>
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-RT <span class="citation">@fredsirieix1</span>: Weâre back! ðºð¥ <span class="citation">@GordonRamsay</span> <span class="citation">@Ginofantastico</span> <span class="citation">@itv</span> #GordonGinoandFred <a href="https://t.co/3oCnGJWI83" class="uri">https://t.co/3oCnGJWI83</a>
+RT <span class="citation">@firstwefeast</span>: .@GordonRamsay &amp;amp; his son is the wholesome morning content we need ð¨âð¦ <a href="https://t.co/pQIohtsjXV" class="uri">https://t.co/pQIohtsjXV</a>
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-<span class="citation">@GordonRamsay</span> how does this cake look <a href="https://t.co/UVVxSqLhMy" class="uri">https://t.co/UVVxSqLhMy</a>
+<span class="citation">@danieljohnsalt</span> <span class="citation">@PALillie</span> <span class="citation">@GordonRamsay</span> <a href="https://t.co/mrLDsFU3Mn" class="uri">https://t.co/mrLDsFU3Mn</a>
 </td>
 </tr>
 </tbody>
