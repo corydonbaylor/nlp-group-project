@@ -33,6 +33,11 @@ caitlin
 Corydon
 
 
+[How to create a Twitter Developer Account](https://www.extly.com/docs/autotweetng_joocial/tutorials/how-to-auto-post-from-joomla-to-twitter/apply-for-a-twitter-developer-account/#apply-for-a-developer-account)
+
+
+### Saving Credentials in a .gitignore
+
 
 ## TwitteR
 
