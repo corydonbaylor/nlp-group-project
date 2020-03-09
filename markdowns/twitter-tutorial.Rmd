@@ -11,35 +11,51 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Getting Started
+
+### Getting a Developer Account
+caitlin -  youtube video
+
+### Saving Credentials in a .gitignore
+corydon
+
 ## rtweet
 
 explantion on what rtweet is: corydon
 
-```{r cars}
-summary(cars)
-```
+### Retrieving Topics
+caitlin
 
-## Setting Up an Twitter Developer Account
-caitlin -  youtube video
+### User Data
+caitlin
+
+### Posting a tweet
+Corydon
+
 
 [How to create a Twitter Developer Account](https://www.extly.com/docs/autotweetng_joocial/tutorials/how-to-auto-post-from-joomla-to-twitter/apply-for-a-twitter-developer-account/#apply-for-a-developer-account)
 
 
 ### Saving Credentials in a .gitignore
 
-## Retrieving Topics
+
+## TwitteR
+
+### Retrieving Topics
 
 Michael Bunting
 
-## User Tweets
+### User Tweets
 
 Michael Bunting
+
+
 
 ## Example 1: For users 
 
 ## Example 2:
 
-### Conclusion
+## Conclusion
 ```{r pressure, echo=FALSE}
 plot(pressure)
 ```
