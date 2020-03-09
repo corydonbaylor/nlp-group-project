@@ -398,12 +398,12 @@ twitter_access_token_secret = &quot;sample_key&quot;
 <p><strong>Create a .gitignore file</strong></p>
 <p>This part is a little more complicated than you may expect because you are just creating a file. But I think the most reproducible way is through git bash. In the root directory of your project, open up bash (right click and press “Git Bash Here”), and write the following code:</p>
 <p><code>touch .gitignore</code></p>
-<p><strong>Add script into your .gitignore and then call it into your project</strong> Just open up the .gitignore (notepad works fine), and add keys.R into the .gitignore file. Now if you are simply just writing <code>keys.R</code> into the file, than it has to be in the same directory. There are a bunch of different options for (.gitignore)[<a href="https://www.atlassian.com/git/tutorials/saving-changes/gitignore" class="uri">https://www.atlassian.com/git/tutorials/saving-changes/gitignore</a>].</p>
+<p><strong>Add script into your .gitignore and then call it into your project</strong> Just open up the .gitignore (notepad works fine), and add keys.R into the .gitignore file. Now if you are simply just writing <code>keys.R</code> into the file, than it has to be in the same directory. There are a bunch of different options for <a href="https://www.atlassian.com/git/tutorials/saving-changes/gitignore">.gitignore</a>. Finally, make sure that you call the keys script into your project so that the keys are in your environment.</p>
 </div>
 </div>
 <div id="rtweet" class="section level2">
 <h2>rtweet</h2>
-<p>explantion on what rtweet is: corydon</p>
+<p><code>rtweet</code> is a <a href="rtweet.info">package</a> designed to interact with twitter’s API. It is tidyverse ready meaning that its API calls return a data.frame. This is really convienient if your workflow includes things like <code>dplyr</code> or <code>tidytext</code>.</p>
 <div id="retrieving-topics" class="section level3">
 <h3>Retrieving Topics</h3>
 <p>caitlin</p>

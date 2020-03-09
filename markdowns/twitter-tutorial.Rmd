@@ -38,11 +38,11 @@ This part is a little more complicated than you may expect because you are just 
 `touch .gitignore`
 
 **Add script into your .gitignore and then call it into your project**
-Just open up the .gitignore (notepad works fine), and add keys.R into the .gitignore file. Now if you are simply just writing `keys.R` into the file, than it has to be in the same directory. There are a bunch of different options for (.gitignore)[https://www.atlassian.com/git/tutorials/saving-changes/gitignore]. Finally, make sure that you 
+Just open up the .gitignore (notepad works fine), and add keys.R into the .gitignore file. Now if you are simply just writing `keys.R` into the file, than it has to be in the same directory. There are a bunch of different options for [.gitignore](https://www.atlassian.com/git/tutorials/saving-changes/gitignore). Finally, make sure that you call the keys script into your project so that the keys are in your environment. 
 
 ## rtweet
 
-`rtweet` is a package designed to interact with twitter's API. It is tidyverse ready meaning that its API calls return a data.frame. This is really convienient if your workflow includes things like `dplyr` or `tidytext`.
+`rtweet` is a [package](rtweet.info) designed to interact with twitter's API. It is tidyverse ready meaning that its API calls return a data.frame. This is really convienient if your workflow includes things like `dplyr` or `tidytext`.
 
 ### Retrieving Topics
 caitlin
