@@ -91,8 +91,10 @@ First, call the twitteR package and run the `setup_twitter_oauth` function, whic
 
 ```{r, message=F, warning=F}
 library(twitteR)
-setup_twitter_oauth(twitter_api_key, twitter_api_secret_key,
-                     twitter_access_token, twitter_access_token_secret)
+setup_twitter_oauth(twitter_api_key, 
+                    twitter_api_secret_key,
+                    twitter_access_token, 
+                    twitter_access_token_secret)
 ```
 
 Notice the keys and tokens in the `setup_twitter_oauth` function above. I've already read these keys into variables saved in the global environment. 
