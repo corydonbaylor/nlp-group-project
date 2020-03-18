@@ -8,8 +8,17 @@ output:
 ---
 
 ```{r, include=F}
-
+library(rtweet)
 source("../keys.R")
+
+twitter_token <- create_token(
+  app = twitter_app,
+  consumer_key = twitter_api_key,
+  consumer_secret = twitter_api_secret_key,
+  access_token = twitter_access_token,
+  access_secret = twitter_access_token_secret
+)
+
 
 ```
 
@@ -129,8 +138,79 @@ kable(head(feed_gordon), format = "html")%>%
 Ta-da.
 
 
-## Example 1: For users 
+## Example 1: Pulling Data for a User {.tabset .tabset-fade} 
 
-## Example 2:
+### Problem
+
+Create a scatter plot showing the retweet to favorites ratio for Dwayne "the Rock" Johnson. 
+
+**Hints**
+
+- Using the `rtweet` and the `get_timeline()` function you can pull back all the data (and waay more) that you need. 
+- `ggplot2` can allow you to easily put together a simple scatterplot
+
+### Solution
+
+Due to the simplicity of the `rtweet` package, retrieving the data isn't all that invovled. Simply use the `get_timeline()` function and boom, you got the data.
+
+```{r, message=F, warning=F}
+
+rock = get_timeline("therock", n =100)
+```
+
+Now we just need to put it into a chart. I like the `theme_minimal()` function from ggplot for a simple and professional look.  
+
+```{r, message=F, warning=F}
+library(scales)
+library(ggplot2)
+
+ggplot(data = rock)+
+  geom_point(aes(x = favorite_count, # how many favorited 
+                 y = retweet_count,  # how many retweeted
+                 color = is_quote    # is the rock quoting?
+                 )
+             )+ 
+  theme_minimal()+
+  theme(legend.position = "bottom")+
+  # adding the right title and legend label
+  labs(title = "What's the Rock Cooking?", 
+       color = "Is the Rock Quoting?")+
+  # using comma from the scales package for the axis labels
+  scale_y_continuous("Retweets", labels = comma)+ 
+  scale_x_continuous("Favorites", labels = comma)
+
+```
+
+Well it looks like the Rock wasn't cooking up to much as of 3/18/2020. We got one really popular tweet and that's it.
+
+## Example 2: Search a Topic on Twitter {.tabset .tabset-fade}
+
+### Problem
+Now let us enter the terrifying world of regex. Specifically when it comes to cleaning up tweets. 
+
+For our next example, lets pull all the **popular** tweets using with the hashtag #rstats and then clean out all the hashtags and carriage returns that come with it.
+
+**Hint**
+Personally, I think this tests your googling ability much more than than your mastery of the package. I used the following [stackoverflow](https://stackoverflow.com/questions/51947268/remove-hashtags-from-beginning-and-end-of-tweets-in-r) as the basis of my response. 
+
+### Solution
+```{r, message=F, warning=F}
+data = search_tweets("#rstats", # include the topic you are searching for 
+                     type  = "popular", # lets return the 'popular' tweets
+                     include_rts = F) # no retweets pls.
+data$text
+```
+
+That looks...gross. Lets remove the hashtags and carriage returns!
+
+```{r, message=F, warning=F}
+text = gsub("(?:\\s*#\\w+)*", "", data$text) # remove all the hashtags at the end
+text = gsub("\n|—", "", text) # remove all the line breaks
+text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", text) # remove urls
+
+text
+```
+
+Ah, much better!
 
 ## Conclusion
