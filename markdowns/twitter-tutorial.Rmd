@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Getting Started
 
 ### Getting a Developer Account
-caitlin -  youtube video
+[How to create a Twitter Developer Account](https://www.extly.com/docs/autotweetng_joocial/tutorials/how-to-auto-post-from-joomla-to-twitter/apply-for-a-twitter-developer-account/#apply-for-a-developer-account)
 
 ### Saving Credentials in a .gitignore
 After finally getting your credentials, you need to protect them. If you are just working locally on your computer, this is easy. Just do whatever you usually do to protect complicated passwords. However, if you are working on a git project (like this one), then you need to do something extra.
@@ -51,7 +51,77 @@ Just open up the .gitignore (notepad works fine), and add keys.R into the .gitig
 `rtweet` is a [package](rtweet.info) designed to interact with twitter's API. It is tidyverse ready meaning that its API calls return a data.frame. This is really convienient if your workflow includes things like `dplyr` or `tidytext`.
 
 ### Retrieving Topics
-caitlin
+In order to retrieve topics from Twitter with the rtweet package, you must create a Twitter Developer account to further create your very own unique API access tokens (keys). Follow the instructions on this [link](https://rtweet.info/articles/auth.html) to do so.
+```{r, message=F, warning=F, error = F}
+library(tokenizers)
+library(dplyr)
+library(tidytext)
+library(tidyr)
+library(rtweet)
+library(ggplot2)
+
+# Get the top 50 trending hashtags in the US. 
+usa <- get_trends("United States")
+usa$trend
+
+# Let's search for 1000 tweets hashtagging the number one trending hashtag in the US
+top_trending_hashtag <- search_tweets(
+  usa$trend[1], n = 1000, include_rts = FALSE) %>%
+  select(screen_name, text, hashtags)
+
+head(top_trending_hashtag) 
+
+# Removing URLs and numbers attached to words
+top_trending_hashtag$text <- gsub("http.*", "", top_trending_hashtag$text)
+top_trending_hashtag$text <- gsub("https.*", "", top_trending_hashtag$text)
+top_trending_hashtag$text <- gsub("[0-9]","",top_trending_hashtag$text)
+
+# Creating a table in a format that can later be broken down by n words per row
+text_df <- tibble(user = top_trending_hashtag$screen_name, text = top_trending_hashtag$text)
+
+head(text_df)
+
+# Create a table of all 2 word phrases (bigrams) in tweets hashtagged with the top trending hashtag in the US
+bigram_table <- text_df %>%
+  unnest_tokens(bigram, text, token = "ngrams", n = 2)
+bigram_table
+
+# Separate the bigrams into individual word columns in order to remove stopwords
+# Stopwords are common words such as 'a' or 'and' that do not provide meaning in text analysis
+bigram_table <- bigram_table %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+# Filter out stopwords
+bigrams_filtered <- bigram_table %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+
+
+# Combine the individual word columns back into one bigram column
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ")
+
+# Create a count column that counts the number of times each bigram appears within our data set
+bigrams_united <- bigrams_united %>%
+  count(bigram, sort = TRUE)
+
+
+bigrams_united %>%
+  top_n(15) %>%
+  mutate(bigram = reorder(bigram, n)) %>%
+  ggplot(aes(x = bigram, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+  labs(y = "Count",
+       x = "Unique Phrases",
+       title = "Count of unique phrases found in tweets",
+       subtitle = "Stop words removed from the list")
+
+
+
+```
+
 
 ### User Data
 caitlin
@@ -60,7 +130,7 @@ caitlin
 Corydon
 
 
-[How to create a Twitter Developer Account](https://www.extly.com/docs/autotweetng_joocial/tutorials/how-to-auto-post-from-joomla-to-twitter/apply-for-a-twitter-developer-account/#apply-for-a-developer-account)
+
 
 
 ### Saving Credentials in a .gitignore
