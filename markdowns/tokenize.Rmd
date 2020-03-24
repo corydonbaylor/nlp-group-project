@@ -1,0 +1,47 @@
+---
+title: "Tokening with tidytext"
+author: "Team Hanley NLP Working Group"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting the Data
+
+We will be using the book Metamorphosis by Franz Kafka as our example data. 
+
+```{r warning=FALSE, message=FALSE}
+
+meta = gutenberg_download("5200")
+
+```
+## Tokening by n-grams
+Michael
+
+### Unigrams
+Michael
+
+### Bigrams
+Michael
+
+## Removing Stop Words
+Corydon
+
+## Counting n-grams
+Corydon 
+
+## TF-IDF
+Caitlin
+
+## Example 1:
+
+Caitlin
+
+## Example 2:
+
+Caitlin
