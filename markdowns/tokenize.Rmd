@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 We will be using the book Metamorphosis by Franz Kafka as our example data. 
 
 ```{r warning=FALSE, message=FALSE}
-
+library(gutenbergr)
 meta = gutenberg_download("5200")
 
 ```
@@ -31,7 +31,21 @@ Michael
 
 ## Removing Stop Words
 Corydon
+```{r}
+library(tidytext)
+library(dplyr)
+library(tidyr)
 
+split_method = meta%>%
+  unnest_tokens(bigram, text, token = "ngrams", n =2)%>%
+  separate(bigram, c("word1", "word2"), sep = " ")%>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)%>%
+  unite(bigram, word1, word2, sep = " ")
+
+
+
+```
 ## Counting n-grams
 Corydon 
 
