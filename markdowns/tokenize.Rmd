@@ -17,17 +17,45 @@ We will be using the book Metamorphosis by Franz Kafka as our example data.
 
 ```{r warning=FALSE, message=FALSE}
 
+library(dplyr)
+library(tidytext)
+library(gutenbergr)
+
 meta = gutenberg_download("5200")
 
 ```
 ## Tokening by n-grams
-Michael
 
-### Unigrams
-Michael
+Tokenization is the process of breaking your text into pieces or tokens. As noted [here](https://nlp.stanford.edu/IR-book/html/htmledition/tokenization-1.html), a token is "an instance of a sequence of characters in some particular document that are grouped together as a useful semantic unit for processing." In practice, tokens often refer to words. 
+
+## Unigrams
+
+An n-gram is a contiguous sequence of n items from a sample of text. An n-gram of size 1 is called a unigram, size 2 is a bigram, and size 3 is a trigram. 
+
+Here's an example of how to tokenize by unigrams. We'll use our text from Metamorphosis.
+
+```{r, message=F, warning=F, error = F}
+
+
+kafka_unigrams <- meta %>% unnest_tokens(word, text, token = "ngrams", n = 1)
+
+kafka_unigrams
+
+```
+
 
 ### Bigrams
-Michael
+
+And here's an example of tokenizing by bigrams. Notice the only argument in `unnest_tokens` that needs to change from our unigram example is `n =`. (The first argument listed here is the column name, which can be whatever you want.)
+
+```{r, message=F, warning=F, error = F}
+
+
+kafka_bigrams <- meta %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
+kafka_bigrams
+
+```
 
 ## Removing Stop Words
 Corydon
