@@ -30,14 +30,41 @@ Michael
 Michael
 
 ## Removing Stop Words
-Corydon
-```{r}
+Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
+
+For humans, more words are needed but for NLP they add nothing. Let's look at that last word for example.
+
+>For humans, more words are needed but for NLP they add nothing.
+
+Now without the stop words!
+
+>humans more words needed NLP add nothing.
+
+As you can see, computer really only need cave man speak to get the semantic meaning of words.
+
+### How do we know if something is a stop word
+As you might guess, what exactly constitutes a stop word is somewhat subjective. When thinking about defining a stop word, we need to think about generalities and scale. For example, "no" can be a really important word semantically. It 
+
+Lets use our bigram example from before. We are going to be basing our methodogly for removing stop words off of [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). Its pretty simple and somewhat scalable.
+
+```{r, warning=FALSE, message=F}
 library(tidytext)
 library(dplyr)
 library(tidyr)
+library(kableExtra)
 
 split_method = meta%>%
-  unnest_tokens(bigram, text, token = "ngrams", n =2)%>%
+  unnest_tokens(bigram, text, token = "ngrams", n =2)
+```
+
+
+- First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
+- Next for each "word" column, filter out all the stop words
+- Finally, concatinate all the columns back together with `unite()`
+
+```{r, warning=FALSE, message=F}
+
+split_method%>%
   separate(bigram, c("word1", "word2"), sep = " ")%>%
   filter(!word1 %in% stop_words$word) %>%
   filter(!word2 %in% stop_words$word)%>%
