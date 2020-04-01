@@ -42,8 +42,8 @@ Now without the stop words!
 
 As you can see, computer really only need cave man speak to get the semantic meaning of words.
 
-### How do we know if something is a stop word
-As you might guess, what exactly constitutes a stop word is somewhat subjective. When thinking about defining a stop word, we need to think about generalities and scale. For example, "no" can be a really important word semantically. It 
+### How do we know if something is a stop word?
+As you might guess, what exactly constitutes a stop word is somewhat subjective. When thinking about defining a stop word, we need to think about generalities and scale. For example, "no" can be a really important word semantically, and for certain tasks, like sentiment analysis, [you may want to keep certain stop words](https://medium.com/@limavallantin/why-is-removing-stop-words-not-always-a-good-idea-c8d35bd77214), especially words like "no" or "not". Handling these words is called [negation handling](https://towardsdatascience.com/sentiment-analysis-in-r-good-vs-not-good-handling-negations-2404ec9ff2ae). But we will get into that when we cover sentiment analysis.   
 
 Lets use our bigram example from before. We are going to be basing our methodogly for removing stop words off of [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). Its pretty simple and somewhat scalable.
 
@@ -64,11 +64,17 @@ split_method = meta%>%
 
 ```{r, warning=FALSE, message=F}
 
-split_method%>%
+final = split_method%>%
   separate(bigram, c("word1", "word2"), sep = " ")%>%
   filter(!word1 %in% stop_words$word) %>%
   filter(!word2 %in% stop_words$word)%>%
   unite(bigram, word1, word2, sep = " ")
+
+# preparing for display
+final%>%
+  slice(1:4)%>%
+  kable()%>%
+  kable_styling("striped")
 
 
 
