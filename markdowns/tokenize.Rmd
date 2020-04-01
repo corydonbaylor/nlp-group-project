@@ -53,7 +53,7 @@ library(dplyr)
 library(tidyr)
 library(kableExtra)
 
-split_method = meta%>%
+unnest = meta%>%
   unnest_tokens(bigram, text, token = "ngrams", n =2)
 ```
 
@@ -64,7 +64,7 @@ split_method = meta%>%
 
 ```{r, warning=FALSE, message=F}
 
-final = split_method%>%
+final = unnest%>%
   separate(bigram, c("word1", "word2"), sep = " ")%>%
   filter(!word1 %in% stop_words$word) %>%
   filter(!word2 %in% stop_words$word)%>%
@@ -80,7 +80,30 @@ final%>%
 
 ```
 ## Counting n-grams
-Corydon 
+While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Lets look at the bigram frequency of the *Metamorphasis* with an without removing stop words:
+
+**With Stop Words**
+```{r, warning=FALSE, message=F}
+unnest%>%
+  count(bigram, sort = T)%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+```
+
+**Without Stop Words**
+```{r, warning=FALSE, message=F}
+final%>%
+  count(bigram, sort = T)%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+```
+
+
+So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would "of the" as one of the top bigrams in nearly any book or paper. 
+
+Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
 
 ## TF-IDF
 Caitlin
