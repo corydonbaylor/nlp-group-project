@@ -16,28 +16,88 @@ knitr::opts_chunk$set(echo = TRUE)
 We will be using the book Metamorphosis by Franz Kafka as our example data. 
 
 ```{r warning=FALSE, message=FALSE}
-
+library(gutenbergr)
+library(tidytext)
+library(dplyr)
 meta = gutenberg_download("5200")
 
 ```
 ## Tokening by n-grams
+
 Michael
 
 ### Unigrams
 Michael
 
 ### Bigrams
-Michael
+```{r warning = FALSE, message = FALSE}
+# ch <- c("   I   ", "   II   ", "   III   ")
+# chapters <- strsplit(meta, "\\s(?=   I   )", perl = TRUE)[[1]]
+bigrams <- meta %>%
+  unnest_tokens(bigram, text, token = "ngrams", n = 2)
+```
+
 
 ## Removing Stop Words
-Corydon
+```{r warning = FALSE, message = FALSE}
+bigrams_separated <- bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+bigrams_filtered <- bigrams_separated %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ") 
+```
+
 
 ## Counting n-grams
-Corydon 
+```{r warning = FALSE, message = FALSE}
+bigrams_united <- bigrams_united %>%
+  count(bigram, sort = TRUE)
+```
+ 
 
 ## TF-IDF
-Caitlin
+```{r warning = FALSE, message = FALSE}
+bigrams_united$chapter <- 0
+bigrams_united$chapter[1:14000] <- 1
+bigrams_united$chapter[14001:28000] <- 2
+bigrams_united$chapter[28001:length(bigrams_united$chapter)] <- 3
+bigram_tf_idf <- bigrams_united %>%
+  count(chapter, bigram, sort = TRUE) %>%
+  bind_tf_idf(bigram, chapter, n) %>%
+  arrange(desc(tf_idf))
 
+bigram_tf_idf
+
+bigram_tf_idf %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(bigram = factor(bigram, levels = rev(unique(bigram)))) %>% 
+  group_by(chapter) %>% 
+  top_n(15) %>% 
+  ungroup() %>%
+  ggplot(aes(bigram, tf_idf, fill = chapter)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~chapter, ncol = 2, scales = "free") +
+  coord_flip()
+
+
+# bigram_tf_idf %>%
+#         group_by(book) %>%
+#         top_n(15, wt = tf_idf) %>%
+#         ungroup() %>%
+#         mutate(book = factor(book) %>% forcats::fct_rev()) %>%
+#         ggplot(aes(drlib::reorder_within(bigram, tf_idf, book), tf_idf, fill = book)) +
+#         geom_bar(stat = "identity", alpha = .8, show.legend = FALSE) +
+#         labs(title = "Highest tf-idf bi-grams in the Harry Potter series",
+#              x = NULL, y = "tf-idf") +
+#         drlib::scale_x_reordered() +
+#         facet_wrap(~book, ncol = 2, scales = "free") +
+#         coord_flip()
+```
 ## Example 1:
 
 Caitlin
