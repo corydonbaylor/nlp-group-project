@@ -187,6 +187,7 @@ bigram_tf_idf %>%
   facet_wrap(~chapter, ncol = 2, scales = "free") +
   coord_flip()
 
+```
 
 ## Example 1: Tokenize and Remove Stop Words for Jane Austin
 Corydon
