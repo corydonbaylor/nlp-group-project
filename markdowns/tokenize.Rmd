@@ -5,6 +5,7 @@ output:
   html_document:
     toc: TRUE
     toc_depth: 2
+    self_contained: false
 ---
 
 ```{r setup, include=FALSE}
@@ -16,29 +17,99 @@ knitr::opts_chunk$set(echo = TRUE)
 We will be using the book Metamorphosis by Franz Kafka as our example data. 
 
 ```{r warning=FALSE, message=FALSE}
-library(gutenbergr)
-library(tidytext)
+
 library(dplyr)
+library(tidytext)
+library(gutenbergr)
+
 meta = gutenberg_download("5200")
 
 ```
 ## Tokening by n-grams
 
-Michael
+Tokenization is the process of breaking your text into pieces or tokens. As noted [here](https://nlp.stanford.edu/IR-book/html/htmledition/tokenization-1.html), a token is "an instance of a sequence of characters in some particular document that are grouped together as a useful semantic unit for processing." In practice, tokens often refer to words. 
 
-### Unigrams
-Michael
+## Unigrams
+
+An n-gram is a contiguous sequence of n items from a sample of text. An n-gram of size 1 is called a unigram, size 2 is a bigram, and size 3 is a trigram. 
+
+Here's an example of how to tokenize by unigrams. We'll use our text from Metamorphosis.
+
+```{r, message=F, warning=F, error = F}
+
+
+kafka_unigrams <- meta %>% unnest_tokens(word, text, token = "ngrams", n = 1)
+
+kafka_unigrams
+
+```
 
 ### Bigrams
-```{r warning = FALSE, message = FALSE}
-# ch <- c("   I   ", "   II   ", "   III   ")
-# chapters <- strsplit(meta, "\\s(?=   I   )", perl = TRUE)[[1]]
-bigrams <- meta %>%
-  unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
+And here's an example of tokenizing by bigrams. Notice the only argument in `unnest_tokens` that needs to change from our unigram example is `n =`. (The first argument listed here is the column name, which can be whatever you want.)
+
+```{r, message=F, warning=F, error = F}
+
+kafka_bigrams <- meta %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
+kafka_bigrams
+
 ```
 
 
 ## Removing Stop Words
+Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
+
+For humans, more words are needed but for NLP they add nothing. Let's look at that last word for example.
+
+>For humans, more words are needed but for NLP they add nothing.
+
+Now without the stop words!
+
+>humans more words needed NLP add nothing.
+
+As you can see, computer really only need cave man speak to get the semantic meaning of words.
+
+### How do we know if something is a stop word?
+As you might guess, what exactly constitutes a stop word is somewhat subjective. When thinking about defining a stop word, we need to think about generalities and scale. For example, "no" can be a really important word semantically, and for certain tasks, like sentiment analysis, [you may want to keep certain stop words](https://medium.com/@limavallantin/why-is-removing-stop-words-not-always-a-good-idea-c8d35bd77214), especially words like "no" or "not". Handling these words is called [negation handling](https://towardsdatascience.com/sentiment-analysis-in-r-good-vs-not-good-handling-negations-2404ec9ff2ae). But we will get into that when we cover sentiment analysis.   
+
+Lets use our bigram example from before. We are going to be basing our methodogly for removing stop words off of [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). Its pretty simple and somewhat scalable.
+
+```{r, warning=FALSE, message=F}
+library(tidytext)
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+
+unnest = meta%>%
+  unnest_tokens(bigram, text, token = "ngrams", n =2)
+```
+
+
+- First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
+- Next for each "word" column, filter out all the stop words
+- Finally, concatinate all the columns back together with `unite()`
+
+```{r, warning=FALSE, message=F}
+
+final = unnest%>%
+  separate(bigram, c("word1", "word2"), sep = " ")%>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)%>%
+  unite(bigram, word1, word2, sep = " ")
+
+# preparing for display
+final%>%
+  slice(1:4)%>%
+  kable()%>%
+  kable_styling("striped")
+
+
+
+```
+
+And here's a step-by-step breakdown of separating the bigrams into unigrams, filtering out stop words, and finally uniting the bigrams back together in the dataframe bigrams_united.
+
 ```{r warning = FALSE, message = FALSE}
 bigrams_separated <- bigrams %>%
   separate(bigram, c("word1", "word2"), sep = " ")
@@ -51,32 +122,64 @@ bigrams_united <- bigrams_filtered %>%
   unite(bigram, word1, word2, sep = " ") 
 ```
 
-
 ## Counting n-grams
+
 ```{r warning = FALSE, message = FALSE}
 bigrams_united <- bigrams_united %>%
-  count(bigram, sort = TRUE)
+  add_count(bigram, sort = TRUE)
 ```
- 
+
+ ## Example 1:
+
+While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Let's look at the bigram frequency of the *Metamorphosis* with and without removing stop words:
+
+**With Stop Words**
+```{r, warning=FALSE, message=F}
+unnest%>%
+  count(bigram, sort = T)%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+```
+
+**Without Stop Words**
+```{r, warning=FALSE, message=F}
+final%>%
+  count(bigram, sort = T)%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+```
+
+
+So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would "of the" as one of the top bigrams in nearly any book or paper. 
+
+
+Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
+
+
 
 ## TF-IDF
+
 ```{r warning = FALSE, message = FALSE}
 bigrams_united$chapter <- 0
-bigrams_united$chapter[1:14000] <- 1
-bigrams_united$chapter[14001:28000] <- 2
-bigrams_united$chapter[28001:length(bigrams_united$chapter)] <- 3
+a <- length(bigrams_united$chapter)/4
+b <- a*2
+c <- a*3
+bigrams_united$chapter[1:a] <- 1
+bigrams_united$chapter[(a+1):b] <- 2
+bigrams_united$chapter[(b+1):c] <- 3
+bigrams_united$chapter[(c+1):length(bigrams_united$chapter)] <- 4
 bigram_tf_idf <- bigrams_united %>%
   count(chapter, bigram, sort = TRUE) %>%
   bind_tf_idf(bigram, chapter, n) %>%
   arrange(desc(tf_idf))
-
 bigram_tf_idf
-
 bigram_tf_idf %>%
   arrange(desc(tf_idf)) %>%
   mutate(bigram = factor(bigram, levels = rev(unique(bigram)))) %>% 
   group_by(chapter) %>% 
-  top_n(15) %>% 
+  slice(1:10) %>% 
   ungroup() %>%
   ggplot(aes(bigram, tf_idf, fill = chapter)) +
   geom_col(show.legend = FALSE) +
@@ -85,23 +188,6 @@ bigram_tf_idf %>%
   coord_flip()
 
 
-# bigram_tf_idf %>%
-#         group_by(book) %>%
-#         top_n(15, wt = tf_idf) %>%
-#         ungroup() %>%
-#         mutate(book = factor(book) %>% forcats::fct_rev()) %>%
-#         ggplot(aes(drlib::reorder_within(bigram, tf_idf, book), tf_idf, fill = book)) +
-#         geom_bar(stat = "identity", alpha = .8, show.legend = FALSE) +
-#         labs(title = "Highest tf-idf bi-grams in the Harry Potter series",
-#              x = NULL, y = "tf-idf") +
-#         drlib::scale_x_reordered() +
-#         facet_wrap(~book, ncol = 2, scales = "free") +
-#         coord_flip()
-```
-## Example 1:
+## Example 1: Tokenize and Remove Stop Words for Jane Austin
+Corydon
 
-Caitlin
-
-## Example 2:
-
-Caitlin
