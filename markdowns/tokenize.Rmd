@@ -44,19 +44,18 @@ kafka_unigrams
 
 ```
 
-
 ### Bigrams
 
 And here's an example of tokenizing by bigrams. Notice the only argument in `unnest_tokens` that needs to change from our unigram example is `n =`. (The first argument listed here is the column name, which can be whatever you want.)
 
 ```{r, message=F, warning=F, error = F}
 
-
 kafka_bigrams <- meta %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
 
 kafka_bigrams
 
 ```
+
 
 ## Removing Stop Words
 Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
@@ -108,8 +107,31 @@ final%>%
 
 
 ```
+
+And here's a step-by-step breakdown of separating the bigrams into unigrams, filtering out stop words, and finally uniting the bigrams back together in the dataframe bigrams_united.
+
+```{r warning = FALSE, message = FALSE}
+bigrams_separated <- bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+bigrams_filtered <- bigrams_separated %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ") 
+```
+
 ## Counting n-grams
-While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Lets look at the bigram frequency of the *Metamorphasis* with an without removing stop words:
+
+```{r warning = FALSE, message = FALSE}
+bigrams_united <- bigrams_united %>%
+  add_count(bigram, sort = TRUE)
+```
+
+ ## Example 1:
+
+While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Let's look at the bigram frequency of the *Metamorphosis* with and without removing stop words:
 
 **With Stop Words**
 ```{r, warning=FALSE, message=F}
@@ -132,7 +154,38 @@ final%>%
 
 So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would "of the" as one of the top bigrams in nearly any book or paper. 
 
+
 Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
+
+
+
+## TF-IDF
+
+```{r warning = FALSE, message = FALSE}
+bigrams_united$chapter <- 0
+a <- length(bigrams_united$chapter)/4
+b <- a*2
+c <- a*3
+bigrams_united$chapter[1:a] <- 1
+bigrams_united$chapter[(a+1):b] <- 2
+bigrams_united$chapter[(b+1):c] <- 3
+bigrams_united$chapter[(c+1):length(bigrams_united$chapter)] <- 4
+bigram_tf_idf <- bigrams_united %>%
+  count(chapter, bigram, sort = TRUE) %>%
+  bind_tf_idf(bigram, chapter, n) %>%
+  arrange(desc(tf_idf))
+bigram_tf_idf
+bigram_tf_idf %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(bigram = factor(bigram, levels = rev(unique(bigram)))) %>% 
+  group_by(chapter) %>% 
+  slice(1:10) %>% 
+  ungroup() %>%
+  ggplot(aes(bigram, tf_idf, fill = chapter)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~chapter, ncol = 2, scales = "free") +
+  coord_flip()
 
 
 ## Example 1: Tokenize and Remove Stop Words for Jane Austin
