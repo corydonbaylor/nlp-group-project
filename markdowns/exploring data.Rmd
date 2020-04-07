@@ -1,0 +1,38 @@
+---
+title: "Exploring Text Data"
+author: "Team Hanley NLP Working Group"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+We will be using the book Metamorphosis by Franz Kafka as our example data. 
+
+```{r warning=FALSE, message=FALSE}
+
+library(dplyr)
+library(tidytext)
+library(gutenbergr)
+
+meta = gutenberg_download("5200")
+
+```
+## Word Clouds with wordcloud
+
+Michael Bunting
+
+## TF-IDF
+
+Caitlin Kennedy
+
+## Unique Word Counts
+
+

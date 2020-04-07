@@ -1,0 +1,28 @@
+
+#### Descriptive NLP ####
+Preparing Text Data with Tidytext
+	- tokening
+	- stop words
+	- words counts
+
+Exploring Text Data 
+	- word clouds
+	- TF - IDF
+
+Corpuses with tm
+	- ???
+	- dtm
+
+#### Modeling NLP ####
+
+Sentiment Analysis
+	- what is it
+	- negation handling
+
+Topic Modeling
+
+--------
+
+Clustering Text
+
+Text Classification with R Text Tools

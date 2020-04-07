@@ -5,6 +5,7 @@ output:
   html_document:
     toc: TRUE
     toc_depth: 2
+    self_contained: false
 ---
 
 ```{r setup, include=FALSE}
@@ -133,13 +134,7 @@ So as we can see, before we remove the stop words, we largely get unremarkable b
 
 Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
 
-## TF-IDF
-Caitlin
 
-## Example 1:
+## Example 1: Tokenize and Remove Stop Words for Jane Austin
+Corydon
 
-Caitlin
-
-## Example 2:
-
-Caitlin
