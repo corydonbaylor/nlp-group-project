@@ -22,6 +22,7 @@ library(dplyr)
 library(tidytext)
 library(gutenbergr)
 library(kableExtra)
+library(tidyr)
 
 ```
 ## Tokenizing by n-grams
@@ -39,16 +40,15 @@ Here's an example of how to tokenize by unigrams. We'll use our text from Metamo
 # downloading metamorphasis
 meta = gutenberg_download("5200")
 
-kafka_unigrams = meta %>% unnest_tokens(word, text, token = "ngrams", n = 1)
+unigrams = meta %>% unnest_tokens(word, text, token = "ngrams", n = 1)
 
-kafka_unigrams%>%
+unigrams%>%
     # below is purely for visuzliations purposes
   slice(1:5)%>%
   kable()%>%
   kable_styling("striped")
 
 ```
-
 
 ### Bigrams
 
@@ -57,15 +57,16 @@ And here's an example of tokenizing by bigrams. Notice the only argument in `unn
 ```{r, message=F, warning=F, error = F}
 
 
-kafka_bigrams = meta %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
+bigrams = meta %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
 
-kafka_bigrams%>%
-    # below is purely for visuzliations purposes
+# below is purely for visuzliations purposes
+bigrams%>%
   slice(1:5)%>%
   kable()%>%
   kable_styling("striped")
 
 ```
+
 
 ## Removing Stop Words
 Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
@@ -85,44 +86,43 @@ As you might guess, what exactly constitutes a stop word is somewhat subjective.
 
 Lets use our bigram example from before. We are going to be basing our methodogly for removing stop words off of [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). Its pretty simple and somewhat scalable.
 
-```{r, warning=FALSE, message=F}
-library(tidytext)
-library(dplyr)
-library(tidyr)
-library(kableExtra)
+First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
 
-unnest = meta%>%
-  unnest_tokens(bigram, text, token = "ngrams", n =2)
+```{r warning = FALSE, message = FALSE}
+
+bigrams_separated <- bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
 ```
 
+Next for each "word" column, filter out all the stop words
 
-- First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
-- Next for each "word" column, filter out all the stop words
-- Finally, concatinate all the columns back together with `unite()`
+```{r warning = FALSE, message = FALSE}
 
-```{r, warning=FALSE, message=F}
-
-final = unnest%>%
-  separate(bigram, c("word1", "word2"), sep = " ")%>%
+bigrams_filtered <- bigrams_separated %>%
   filter(!word1 %in% stop_words$word) %>%
-  filter(!word2 %in% stop_words$word)%>%
-  unite(bigram, word1, word2, sep = " ")
-
-# preparing for display
-final%>%
-  slice(1:4)%>%
-  kable()%>%
-  kable_styling("striped")
-
-
+  filter(!word2 %in% stop_words$word)
 
 ```
+
+Finally, concatinate all the columns back together with `unite()`
+
+```{r warning = FALSE, message = FALSE}
+
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ") 
+
+```
+
+And there you have it! A clean dataframe of bigrams without stop words the `tidytext` way.
+
 ## Counting n-grams
-While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Lets look at the bigram frequency of the *Metamorphasis* with an without removing stop words:
+
+While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Let's look at the bigram frequency of the *Metamorphosis* with and without removing stop words:
 
 **With Stop Words**
 ```{r, warning=FALSE, message=F}
-unnest%>%
+bigrams%>%
   count(bigram, sort = T)%>%
   # below is purely for visuzliations purposes
   slice(1:5)%>%
@@ -132,7 +132,7 @@ unnest%>%
 
 **Without Stop Words**
 ```{r, warning=FALSE, message=F}
-final%>%
+bigrams_united%>%
   count(bigram, sort = T)%>%
   # below is purely for visuzliations purposes
   slice(1:5)%>%
@@ -142,6 +142,7 @@ final%>%
 
 
 So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would "of the" as one of the top bigrams in nearly any book or paper. 
+
 
 Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
 
