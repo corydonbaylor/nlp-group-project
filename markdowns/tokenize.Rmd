@@ -1,5 +1,5 @@
 ---
-title: "Tokening with tidytext"
+title: "Tokenizing with tidytext"
 author: "Team Hanley NLP Working Group"
 output:
   html_document:
@@ -21,15 +21,14 @@ We will be using the book Metamorphosis by Franz Kafka as our example data.
 library(dplyr)
 library(tidytext)
 library(gutenbergr)
-
-meta = gutenberg_download("5200")
+library(kableExtra)
 
 ```
-## Tokening by n-grams
+## Tokenizing by n-grams
 
 Tokenization is the process of breaking your text into pieces or tokens. As noted [here](https://nlp.stanford.edu/IR-book/html/htmledition/tokenization-1.html), a token is "an instance of a sequence of characters in some particular document that are grouped together as a useful semantic unit for processing." In practice, tokens often refer to words. 
 
-## Unigrams
+### Unigrams
 
 An n-gram is a contiguous sequence of n items from a sample of text. An n-gram of size 1 is called a unigram, size 2 is a bigram, and size 3 is a trigram. 
 
@@ -37,10 +36,16 @@ Here's an example of how to tokenize by unigrams. We'll use our text from Metamo
 
 ```{r, message=F, warning=F, error = F}
 
+# downloading metamorphasis
+meta = gutenberg_download("5200")
 
-kafka_unigrams <- meta %>% unnest_tokens(word, text, token = "ngrams", n = 1)
+kafka_unigrams = meta %>% unnest_tokens(word, text, token = "ngrams", n = 1)
 
-kafka_unigrams
+kafka_unigrams%>%
+    # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
 
 ```
 
@@ -52,9 +57,13 @@ And here's an example of tokenizing by bigrams. Notice the only argument in `unn
 ```{r, message=F, warning=F, error = F}
 
 
-kafka_bigrams <- meta %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
+kafka_bigrams = meta %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
 
-kafka_bigrams
+kafka_bigrams%>%
+    # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
 
 ```
 
@@ -115,6 +124,7 @@ While it may seem simple, counting frequency of n-grams (in our case bigrams) wi
 ```{r, warning=FALSE, message=F}
 unnest%>%
   count(bigram, sort = T)%>%
+  # below is purely for visuzliations purposes
   slice(1:5)%>%
   kable()%>%
   kable_styling("striped")
@@ -124,6 +134,7 @@ unnest%>%
 ```{r, warning=FALSE, message=F}
 final%>%
   count(bigram, sort = T)%>%
+  # below is purely for visuzliations purposes
   slice(1:5)%>%
   kable()%>%
   kable_styling("striped")
@@ -135,6 +146,58 @@ So as we can see, before we remove the stop words, we largely get unremarkable b
 Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
 
 
-## Example 1: Tokenize and Remove Stop Words for Jane Austin
-Corydon
+## Example: Trigrams for Heart of Darkness {.tabset .tabset-fade}
 
+Overall, this tutorial is simply meant to acquaint you with the basic premises of preparing text data for analysis, specifically in the tidytext universe. 
+
+Now, try and repeat the above steps for "Heart of Darknes" by Joseph Conrad. But this time, lets use trigrams instead of bigrams. **The Gutenberg id is 219**.
+
+### Problem
+
+We will be organizng the book "Heart of Darkness" into **trigrams**. You will need all the packages and skill sets described above to prepare "Heart of Darkness" for analysis. 
+
+**Hints**
+- `tidytext` is mostly scalable but will require some minor edits to handle trigrams
+- Make sure you remove stop words from *all three* of the trigrams.
+
+### Solution
+
+**Step 1: Download the Book**
+```{r, warning = F, message=F}
+
+darkness = gutenberg_download("219")
+
+```
+
+**Step 2: Tokenize the Dataset**
+```{r, warning = F, message=F}
+
+darkness %>%
+  unnest_tokens(trigram, text, token = "ngrams", n = 3)%>%
+  # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+**Step 3: Remove the Stopwords**
+```{r, warning = F, message=F}
+
+darkness %>%
+  unnest_tokens(trigram, text, token = "ngrams", n = 3)%>%
+  separate(trigram, c("word1", "word2", "word3"), sep = " ")%>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)%>%
+  filter(!word3 %in% stop_words$word)%>%
+  unite(trigram, word1, word2, word3, sep = " ")%>%
+  # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+## Conclusion
+
+As you can see, handling text data with tidytext is very simple. The big advantage of using this package is that it works with other tidyverse functions, and this frame work can even be used for some analytic tasks such as sentiment analysis and topic modeling. 
