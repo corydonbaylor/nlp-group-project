@@ -25,9 +25,160 @@ library(gutenbergr)
 meta = gutenberg_download("5200")
 
 ```
+
 ## Word Clouds with wordcloud
 
-Michael Bunting
+This section will show how to make wordclouds from different text data. We'll also show how to use sentiment analysis to make wordclouds made up of positive and negative words.
+
+We'll start by analyzing tweets from Tom Cruise's Twitter account.
+
+First, we'll call the packages we need and source our Twitter API keys.
+
+
+```{r warning=FALSE, message=FALSE}
+library(rtweet)
+library(tm)
+library(wordcloud)
+library(plyr)
+library(RSentiment)
+source("../keys.R")
+
+```
+
+
+Next, we'll activate our API keys, pull in the last 500 tweets from Mr. Cruise's timeline, and set the text column from the resulting dataframe to the object "text".
+
+
+```{r warning=FALSE, message=FALSE}
+
+twitter_token <- create_token(
+  app = twitter_app,
+  consumer_key = twitter_api_key,
+  consumer_secret = twitter_api_secret_key,
+  access_token = twitter_access_token,
+  access_secret = twitter_access_token_secret
+)
+
+tomcruise = get_timeline("@TomCruise", n =500)
+
+text <- as.character(tomcruise$text)
+
+```
+
+
+Next, we'll clean up our data a bit. We'll start by making the text data into a corpus and then removing unnecessary elements, such as punctuation and white space. 
+
+
+```{r warning=FALSE, message=FALSE}
+
+corpus <- Corpus(VectorSource(list(text)))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, stripWhitespace)
+corpus <- tm_map(corpus, removeWords, stopwords('english'))
+
+
+```
+
+
+Cool. Let's check out what we have so far.
+
+
+```{r warning=FALSE, message=FALSE}
+
+wordcloud(corpus)
+
+```
+
+
+That's a lot to take in. Let's make a positive and negative wordcloud using the package RSentiment. We'll start by making a document term matrix, then add a term frequency column to it, then calculate the sentiment for our words.
+
+
+```{r warning=FALSE, message=FALSE, echo=T, results='hide'}
+
+dtm_up <- DocumentTermMatrix(VCorpus(VectorSource(corpus[[1]]$content)))
+freq_up <- colSums(as.matrix(dtm_up))
+
+sentiments_up <- calculate_sentiment(names(freq_up))
+sentiments_up <- cbind(sentiments_up, as.data.frame(freq_up))
+sent_pos_up <- sentiments_up[sentiments_up$sentiment == 'Positive',]
+sent_neg_up <- sentiments_up[sentiments_up$sentiment == 'Negative',]
+cat("Negative sentiments: ", sum(sent_neg_up$freq_up), "Positive sentiments :", sum(sent_pos_up$freq_up))
+
+```
+
+
+Let's see what our positive word cloud looks like.
+
+
+```{r warning=FALSE, message=FALSE}
+
+wordcloud(sent_pos_up$text, sent_pos_up$freq_up, min.freq = 1, random.order = FALSE, colors=brewer.pal(6, "Dark2"))
+
+```
+
+
+And our negative word cloud.
+
+
+```{r warning=FALSE, message=FALSE}
+
+wordcloud(sent_neg_up$text, sent_neg_up$freq_up, min.freq = 1, random.order = FALSE, colors=brewer.pal(6, "Dark2"))
+
+```
+
+
+Looks like wordclouds aren't quite the Mission Impossible. I'll see myself out...
+
+Just kidding -- we have one more example. Let's run the same code to make positive and negative wordclouds for our Metamorphosis text. 
+
+
+```{r warning=FALSE, message=FALSE, echo=T, results='hide'}
+
+text <- as.character(meta$text)
+
+corpus <- Corpus(VectorSource(list(text)))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, stripWhitespace)
+corpus <- tm_map(corpus, removeWords, stopwords('english'))
+
+dtm_up <- DocumentTermMatrix(VCorpus(VectorSource(corpus[[1]]$content)))
+freq_up <- colSums(as.matrix(dtm_up))
+
+sentiments_up <- calculate_sentiment(names(freq_up))
+sentiments_up <- cbind(sentiments_up, as.data.frame(freq_up))
+sent_pos_up <- sentiments_up[sentiments_up$sentiment == 'Positive',]
+sent_neg_up <- sentiments_up[sentiments_up$sentiment == 'Negative',]
+cat("Negative sentiments: ", sum(sent_neg_up$freq_up), "Positive sentiments :", sum(sent_pos_up$freq_up))
+
+```
+
+
+Here's a positive wordcloud:
+
+
+```{r warning=FALSE, message=FALSE}
+
+wordcloud(sent_pos_up$text, sent_pos_up$freq_up, min.freq = 3, random.order = FALSE, colors=brewer.pal(6, "Dark2"))
+
+
+```
+
+
+And the negative one:
+
+
+```{r warning=FALSE, message=FALSE}
+
+wordcloud(sent_neg_up$text, sent_neg_up$freq_up, min.freq = 3, random.order = FALSE, colors=brewer.pal(6, "Dark2"))
+
+```
+
+
+And there you have it.
 
 ## TF-IDF
 
