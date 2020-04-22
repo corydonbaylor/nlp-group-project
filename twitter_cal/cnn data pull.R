@@ -31,15 +31,19 @@ cnn_final = cnn_clean%>% #this allows us to retain the row number/the tweet
 
 fox_first = get_timelines("foxnews", n = 100)
 
-
+# initiate cnn df with a small data pull (you need this to get the starting status_id)
+cnn_first = get_timelines("cnn", n = 100)
 cnn = cnn_first
 
 while(nrow(cnn) < 100001){
     print(nrow(cnn))
-    temp = get_timelines("cnn", n = 900, max_id = min(cnn$status_id)) # pull 900 tweets
+    temp = get_timelines("cnn", n = 1500, max_id = min(cnn$status_id)) # pull 900 tweets
     cnn = rbind(cnn, temp) # bind those to cnn df
+    print(nrow(cnn))
     
     Sys.sleep(900) # pause r for 900 seconds
     
     # do it again
 }
+
+save(cnn, file = "cnn.Rdata")
