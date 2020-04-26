@@ -13,17 +13,17 @@ twitter_token <- create_token(
 
 # load in any dataset that you want to update
 setwd("C:/Users/cwb2w/OneDrive/Documents/github/nlp-group-project/twitter_cal")
-load("data/cnn.Rdata")
-data = cnn 
+load("data/breitbart.Rdata")
+data = news 
 
 # find id of the latest tweet in that dataset
 var = max(data$status_id)
 
 # using the "since_id" parameter pull back the new tweets
-new = get_timeline("cnn", n= 3000, since_id = var)
+new = get_timeline("breitbartnews", n= 3000, since_id = var)
 
 # bind this to the old tweets
-cnn_final = rbind(cnn, cnn_new)
+breitbart = rbind(new, news)
 
 # update the file
-save(cnn_final , file = "data/cnn.Rdata")
+save(breitbart, file = "data/breitbart.Rdata")

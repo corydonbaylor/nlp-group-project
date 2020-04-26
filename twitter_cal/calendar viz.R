@@ -3,7 +3,7 @@ library(lubridate)
 library(ggplot2)
 
 ### creating a sentiment calendar 
-data = trump 
+data = breitbart 
 
 text = data%>%select(text, created_at)%>%
   mutate(text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", data$text),
@@ -19,7 +19,7 @@ sent = text%>% #this allows us to retain the row number/the tweet
   mutate(date = substr(created_at, 1,10)) # cleans up created_at var
 
 bad_day = sent%>%
-  filter(date == '2020-04-16')
+  filter(date == '2020-04-13')
 
 
 month = sent%>%group_by(date)%>%
