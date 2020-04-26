@@ -17,10 +17,9 @@ twitter_token <- create_token(
 fox_first = get_timelines("realdonaldtrump", n = 100)
 load("cnn.Rdata")
 # initiate cnn df with a small data pull (you need this to get the starting status_id)
-first = get_timelines("realdonaldtrump", n = 100)
+news = get_timelines("realdonaldtrump", n = 100)
 
-temp = first[1,]
-news = first
+temp = news[1,]
 
 while(nrow(temp) > 0){
     print(nrow(news))
@@ -33,7 +32,6 @@ while(nrow(temp) > 0){
     # do it again
 }
 
-get_timeline("cnn", n = 150)
 
-breitbart = news
-save(news, file = "breitbart.Rdata")
+
+
