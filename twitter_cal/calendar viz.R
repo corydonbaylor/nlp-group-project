@@ -3,22 +3,27 @@ library(lubridate)
 library(ggplot2)
 
 ### creating a sentiment calendar 
-data = cnn 
+data = breitbart 
 
 text = data%>%select(text, created_at)%>%
-  mutate(text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", cnn$text),
-         linenumber = row_number())%>% #this allows us to retain the row number/the tweet
-  unnest_tokens(word, text) # this unnests the tweets into words
+  mutate(text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", data$text),
+         linenumber = row_number())
 
-sent = text%>%anti_join(stop_words)%>% #removes common words (stop words)
+sent = text%>% #this allows us to retain the row number/the tweet
+  unnest_tokens(word, text)%>% # this unnests the tweets into words
+  anti_join(stop_words)%>% #removes common words (stop words)
   left_join(get_sentiments("afinn")) %>% # gets sentiment score based on afinn dictionary
   group_by(linenumber) %>% 
   summarise(sentiment = sum(value, na.rm = T)) %>% # sums up the sentment to the tweet level 
-  right_join(., cnn_text, by = "linenumber")%>% # joins back to the original dataset with the sentiment score
+  right_join(., text, by = "linenumber")%>% # joins back to the original dataset with the sentiment score
   mutate(date = substr(created_at, 1,10)) # cleans up created_at var
 
+bad_day = sent%>%
+  filter(date == '2020-03-31')
+
+
 month = sent%>%group_by(date)%>%
-  summarise(sentiment = sum(sentiment, na.rm =T))%>%
+  summarise(sentiment = mean(sentiment, na.rm =T))%>%
   # to create the plot we need to be able to organzie with days as the columns and week number as the rows
   mutate(weekday =  
            
