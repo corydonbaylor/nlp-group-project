@@ -3,7 +3,8 @@ library(lubridate)
 library(ggplot2)
 
 ### creating a sentiment calendar 
-data = foxnews 
+
+data = AP
 
 text = data%>%select(text, created_at)%>%
   mutate(
