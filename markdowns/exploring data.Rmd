@@ -39,6 +39,7 @@ First, we'll call the packages we need and source our Twitter API keys.
 library(rtweet)
 library(tm)
 library(wordcloud)
+library(wordcloud2)
 library(plyr)
 library(RSentiment)
 source("../keys.R")

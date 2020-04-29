@@ -11,17 +11,14 @@ twitter_token <- create_token(
 )
 
 
-# ap_first = get_timelines("@AP", n = 100)
-# load(".Rdata")
-
 # initiate cnn df with a small data pull (you need this to get the starting status_id)
-news = get_timelines("@AP", n = 100)
+news = get_timelines("@WSJ", n = 100)
 
 temp = news[1,]
 
 while(nrow(temp) > 0){
   print(nrow(news))
-  temp = get_timelines("@AP", n = 150, max_id = min(news$status_id)) # pull 900 tweets
+  temp = get_timelines("@WSJ", n = 150, max_id = min(news$status_id)) # pull 900 tweets
   news = rbind(news, temp) # bind those to cnn df
   print(nrow(news))
   
@@ -30,6 +27,6 @@ while(nrow(temp) > 0){
   # do it again
 }
 
-AP = unique(news)
+WSJ = unique(news)
 
-save(AP, file = "data/AP.Rdata")
+save(WSJ, file = "data/WSJ.Rdata")

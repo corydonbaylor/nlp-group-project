@@ -14,20 +14,100 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Sentiment Analysis
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Sentiment analysis is the classification and analysis of the emotional intent in text data. Some approaches include classifying words as positive or negative, assigning words to a specific emotion (like surprise), or calculating a sentiment score in the form of a number.  
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+`tidytext` has several sentiment lexicons that help in such analysis. To start, we'll take a look at "afinn", "bing", and "nrc".  
+
+"afinn" assigns a number score, with higher numbers being more positive.
+
+```{r warning=FALSE, message=FALSE}
+
+library(tidytext)
+
+get_sentiments("afinn")
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+"bing" classifies words as either positive or negative.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+```{r warning=FALSE, message=FALSE}
+
+get_sentiments("bing")
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+And "nrc" assigns words as either "yes" or "no" under categories of positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust.
+
+
+```{r warning=FALSE, message=FALSE}
+
+get_sentiments("nrc")
+
+```
+
+
+Let's look at our Tom Cruise example from the Exploring Data walkthrough and see how we can apply sentiment analysis through wordclouds. We'll start by pulling in our tweets, cleaning up our text, and making a wordcloud.
+
+```{r warning=FALSE, message=FALSE}
+
+
+library(wordcloud)
+library(RColorBrewer)
+library(dplyr)
+library(rtweet)
+library(tm)
+source("../keys.R")
+
+twitter_token <- create_token(
+  app = twitter_app,
+  consumer_key = twitter_api_key,
+  consumer_secret = twitter_api_secret_key,
+  access_token = twitter_access_token,
+  access_secret = twitter_access_token_secret
+)
+
+tomcruise = get_timeline("@TomCruise", n =500)
+
+text = tomcruise %>% select(text)%>%
+  mutate(text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", tomcruise$text),
+         linenumber = row_number())
+
+
+
+
+
+```
+
+
+Now we'll make wordclouds for positive and negative words, as assigned using the "bing" sentiment lexicon.
+
+
+```{r warning=FALSE, message=FALSE}
+
+
+text = text%>% #this allows us to retain the row number/the tweet
+  unnest_tokens(word, text)%>% # this unnests the tweets into words
+  anti_join(stop_words)%>% #removes common words (stop words)
+  left_join(get_sentiments("bing")) # gets sentiment score based on bing dictionary
+
+wordcloud(text$word, min.freq = 1, random.order = FALSE, colors=brewer.pal(6, "Dark2"))
+
+
+```
+
+
+
+```{r warning=FALSE, message=FALSE}
+
+
+
+
+
+```
+
+
+
