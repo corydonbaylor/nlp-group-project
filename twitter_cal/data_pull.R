@@ -12,12 +12,12 @@ twitter_token <- create_token(
 )
 
 
-# initiate cnn df with a small data pull (you need this to get the starting status_id)
-news = get_timelines("realdonaldtrump", n = 100)
+# initiate df with a small data pull (you need this to get the starting status_id)
+news = get_timelines("foxnews", n = 100)
 
-temp = news[1,]
+temp = news[1:5,]
 
-while(nrow(temp) > 0){
+while(nrow(temp) > 1){
     print(nrow(news))
     temp = get_timelines("realdonaldtrump", n = 150, max_id = min(news$status_id)) # pull 900 tweets
     news = rbind(news, temp) # bind those to cnn df
@@ -28,6 +28,11 @@ while(nrow(temp) > 0){
     # do it again
 }
 
+if(length(unique(news$status_id)) > nrow(news)){
+  news = unique(news)
+}
 
+foxnews = news 
 
-
+save(foxnews, file = "foxnews.Rdata")
+load("foxnews.Rdata")

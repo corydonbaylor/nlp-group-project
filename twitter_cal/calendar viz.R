@@ -3,16 +3,19 @@ library(lubridate)
 library(ggplot2)
 
 ### creating a sentiment calendar 
-data = AP 
+
+data = AP
 
 text = data%>%select(text, created_at)%>%
-  mutate(text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", data$text),
+  mutate(
+    text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", data$text),
          linenumber = row_number())
 
 sent = text%>% #this allows us to retain the row number/the tweet
   unnest_tokens(word, text)%>% # this unnests the tweets into words
   anti_join(stop_words)%>% #removes common words (stop words)
   left_join(get_sentiments("afinn")) %>% # gets sentiment score based on afinn dictionary
+  mutate(value = ifelse(is.na(value), 0 , value))%>%
   group_by(linenumber) %>% 
   summarise(sentiment = sum(value, na.rm = T)) %>% # sums up the sentment to the tweet level 
   right_join(., text, by = "linenumber")%>% # joins back to the original dataset with the sentiment score
