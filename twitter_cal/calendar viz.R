@@ -7,7 +7,7 @@ data = foxnews
 
 text = data%>%select(text, created_at)%>%
   mutate(
-    #text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", data$text),
+    text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", data$text),
          linenumber = row_number())
 
 sent = text%>% #this allows us to retain the row number/the tweet
