@@ -13,8 +13,11 @@ twitter_token <- create_token(
 
 # load in any dataset that you want to update
 setwd("/Users/corydonbaylor/Documents/github/nlp-group-project/twitter_cal/")
-load("data/dailycaller.Rdata")
-news = DailyCaller
+load("data/WSJ.Rdata")
+news = WSJ
+
+# how far back do we go?
+print(range(news$created_at))
 
 # double check the screenname 
 screen_name = news$screen_name[1]
@@ -26,7 +29,7 @@ var = max(news$status_id)
 new = get_timeline(screen_name, n= 3000, since_id = var)
 
 # bind this to the old tweets
-DailyCaller = rbind(new, news)
+wsj = rbind(new, news)
 
 # update the file
-save(DailyCaller, file = paste0("data/", screen_name, ".Rdata"))
+save(wsj, file = paste0("data/", screen_name, ".Rdata"))
