@@ -5,89 +5,72 @@ output:
   html_document:
     toc: TRUE
     toc_depth: 2
-    self_contained: false
+    self_contained: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction
+## Summary Statistics with Words
 
-A lot of exploratory data analysis in NLP revolves around counting the frequencies of different terms and plotting it in different ways. This can be as simple as a bar chart looking at the count distinct words, to a word clouds, to something as complex as a TF-IDF.   
+The first step in any data science project should always be to get a sense of your data. For NLP, a lot of exploratory data analysis revolves around counting the frequencies of different terms and plotting it in different ways. This can be as simple as a bar chart looking at the count of distinct words, to a word clouds, to something as complex as a TF-IDF. 
 
-## Word Clouds with wordcloud
-
-This section will show how to make wordclouds from different text data. We'll also show how to use sentiment analysis to make wordclouds.
-
-We'll start by analyzing tweets from Tom Cruise's Twitter account.
-
-First, we'll call the packages we need and source our Twitter API keys. Then we will use the `rtweet` package to pull in the latest 500 tweets from Tom Cruise. 
-
+Before we go any further, we first need to set up our workspace. We will primarily be working with `tidytext` to keep ourselves in the `tidyverse` and will be pulling data from `gutenbergr`, which is a repository of free classic texts. Let's start by loading in our data, Metamorphasis by Kafka, and unnesting it into tokens.
 
 ```{r warning=FALSE, message=FALSE}
-library(rtweet)
-library(tidytext)
 library(gutenbergr)
 library(wordcloud)
-#library(plyr)
-#library(RSentiment)
-source("../keys.R")
+library(ggplot2)
+library(tidytext)
+library(dplyr)
 
-twitter_token <- create_token(
-  app = twitter_app,
-  consumer_key = twitter_api_key,
-  consumer_secret = twitter_api_secret_key,
-  access_token = twitter_access_token,
-  access_secret = twitter_access_token_secret
-)
+meta = gutenberg_download("5200") 
 
-tomcruise = get_timeline("@TomCruise", n =500)
+tokens = meta %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) 
 
 ```
 
-
-Next, we'll clean up our data a bit. Using the `tidytext` package, we can keep things in a dataframe while we do our cleaning. All we need to do is get a vector of words in order to use the `wordcloud` package. To do this, we will need to unnest the tokens and remove the stop words.    
-
+Next we can create a simple barplot looking at the top ten words (not including stop words of course) used in the book. 
 
 ```{r warning=FALSE, message=FALSE}
-text = tomcruise%>%
-  select(created_at, text)%>%
-  mutate(
-    text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", tomcruise$text),
-    linenumber = row_number())
 
-sentiment = text%>% #this allows us to retain the row number/the tweet
-  unnest_tokens(word, text)%>% # this unnests the tweets into words
-  anti_join(stop_words)
+word_count = tokens%>%
+  group_by(word)%>%
+  summarise(count = n())%>%
+  arrange(desc(count))%>%
+  slice(1:10)
 
-sentiment$word[1:5]
+ggplot(data = word_count)+
+  geom_bar(aes(x = word, y = count), stat = "identity",  fill = "#6699cc")+
+  theme_classic()
 
 ```
 
+### Word Clouds with wordcloud
+
+Another way to present summary statistics is with a word cloud. For the unintiated, a word cloud is just a collection of words with the size of the word determined by its prevelance. The natural disadvantage of this being that longer words will appear larger than smaller words, thus making them look more prevelant.  
 
 Actually creating the wordcloud is very easy. Just wrap a character vector in `wordcloud()`. We can remove some of the less frequent words using either the `min.freq` argument or the `max.words` argument. 
 
-```{r warning=FALSE, message=FALSE, echo=T, results='hide'}
+```{r warning=FALSE, message=FALSE}
 
-wordcloud(sentiment$word, max.words = 50, colors=brewer.pal(6, "Dark2"))
+wordcloud(tokens$word, max.words = 75, colors=brewer.pal(6, "Dark2"))
 
 ```
 
-Looks like wordclouds aren't quite the Mission Impossible. I'll see myself out...
-
 ## TF-IDF
 
-TF-IDF, or Term Frequency and Inverse Document Frequency is a way of to numerically give importance to a word or phrase in a given text document relative to a collection of text documents. 
+So far, we have 
 
+TF-IDF, or Term Frequency and Inverse Document Frequency is a way to numerically give importance to a word or phrase in a given text document relative to a collection of other text documents. 
 
 In this example, we will examine how important a word is in a chapter of Metamorphosis in comparison to the entire novel. Our dataframe 'meta' contains the text from Metamorphosis, however there is no column designating chapters in the novel. By looking through the meta dataframe, we can see that there are chapter divides at rows 640 and 1296. Let's start by adding a chapter column to our dataframe, dividing Metamorphosis into it's 3 chapters.
 
 
-
 ```{r warning=FALSE, message=FALSE}
-
-meta = gutenberg_download("5200")
 
 meta$chapter = NA
 meta$chapter[1:639] = 1
