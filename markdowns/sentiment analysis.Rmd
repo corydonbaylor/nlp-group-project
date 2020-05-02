@@ -14,12 +14,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Sentiment Analysis
 
+
 Sentiment analysis is the classification and analysis of the emotional intent in text data. Some approaches include classifying words as positive or negative, assigning words to a specific emotion (like surprise), or calculating a sentiment score in the form of a number.  
 
 
 `tidytext` has several sentiment lexicons that help in such analysis. To start, we'll take a look at "afinn", "bing", and "nrc".  
 
 "afinn" assigns a number score, with higher numbers being more positive.
+
 
 ```{r warning=FALSE, message=FALSE}
 
@@ -30,7 +32,9 @@ get_sentiments("afinn")
 ```
 
 
+
 "bing" classifies words as either positive or negative.
+
 
 
 ```{r warning=FALSE, message=FALSE}
@@ -40,7 +44,9 @@ get_sentiments("bing")
 ```
 
 
+
 And "nrc" assigns words as either "yes" or "no" under categories of positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust.
+
 
 
 ```{r warning=FALSE, message=FALSE}
@@ -50,7 +56,10 @@ get_sentiments("nrc")
 ```
 
 
-Let's look at our Tom Cruise example from the Exploring Data walkthrough and see how we can apply sentiment analysis through wordclouds. We'll start by pulling in our tweets, cleaning up our text, and making a wordcloud.
+
+Let's look at some Tom Cruise tweets and see how we can apply sentiment analysis through wordclouds. We'll start by pulling in our tweets and cleaning up our text.
+
+
 
 ```{r warning=FALSE, message=FALSE}
 
@@ -78,33 +87,139 @@ text = tomcruise %>% select(text)%>%
 
 
 
-
-
 ```
 
 
-Now we'll make wordclouds for positive and negative words, as assigned using the "bing" sentiment lexicon.
+
+Now we'll make a wordcloud for positive words in these tweets, as assigned using the "bing" sentiment lexicon.
+
 
 
 ```{r warning=FALSE, message=FALSE}
 
 
-text = text%>% #this allows us to retain the row number/the tweet
+sentiment = text%>% #this allows us to retain the row number/the tweet
   unnest_tokens(word, text)%>% # this unnests the tweets into words
   anti_join(stop_words)%>% #removes common words (stop words)
-  left_join(get_sentiments("bing")) # gets sentiment score based on bing dictionary
+  left_join(get_sentiments("bing"))
 
-wordcloud(text$word, min.freq = 1, random.order = FALSE, colors=brewer.pal(6, "Dark2"))
+
+positive_sentiment = sentiment%>% filter(!is.na(sentiment),
+         sentiment == 'positive') # gets sentiment score based on bing dictionary
+
+wordcloud(positive_sentiment$word, random.order = FALSE, colors=brewer.pal(6, "Dark2"))
 
 
 ```
 
 
 
+And the negative words...
+
+
+
 ```{r warning=FALSE, message=FALSE}
 
 
+negative_sentiment = sentiment%>% filter(!is.na(sentiment),
+         sentiment == 'negative') # gets sentiment score based on bing dictionary
 
+wordcloud(negative_sentiment$word, random.order = FALSE, colors=brewer.pal(6, "Dark2"))
+
+
+```
+
+
+
+Next, let's explore the "nrc" lexicon by creating a radar chart.
+
+
+```{r warning=FALSE, message=FALSE}
+
+library(fmsb)
+library(tidyr)
+
+nrc_sentiment = text%>% #this allows us to retain the row number/the tweet
+  unnest_tokens(word, text)%>% # this unnests the tweets into words
+  anti_join(stop_words)%>% #removes common words (stop words)
+  left_join(get_sentiments("nrc"))%>%
+  filter(!is.na(sentiment))
+
+nrc_sentiment = nrc_sentiment%>%
+  group_by(sentiment)%>%
+  summarise(count = n())%>%
+  spread(sentiment, count)
+
+nrc_sentiment <- rbind(rep(400,10) , rep(0,10), nrc_sentiment)
+
+
+radarchart(nrc_sentiment, axistype=1 , 
+    pcol=rgb(0.2,0.5,0.5,0.9) , pfcol=rgb(0.2,0.5,0.5,0.5) , plwd=4 , 
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,20,5), cglwd=0.8,
+    vlcex=0.8 )
+
+
+```
+
+
+
+In addition to analyzing sentiment using the `tidytext` lexicons, we can check the general polarity of our text data by using the `qdap` library. As would be expected, a positive average polarity score indicates positive sentiment.
+
+
+
+```{r warning=FALSE, message=FALSE}
+
+
+library(qdap)
+
+cruisepolarity = polarity(text)
+cruisepolarity
+
+```
+
+
+There are many other things you can do with the `qdap` [package](https://cran.r-project.org/web/packages/qdap/qdap.pdf), but let's finish by returning to the "bing" lexicon and make a chart representing the change in sentiments throughout the course of Franz Kafka's Metamorphosis. 
+
+
+
+```{r warning=FALSE, message=FALSE}
+
+library(gutenbergr)
+library(tidyr)
+library(ggplot2)
+
+meta = gutenberg_download("5200")
+
+meta$chapter = NA
+meta$chapter[1:639] = 1
+meta$chapter[640:1295] = 2
+meta$chapter[1296:nrow(meta)] = 3
+
+book_words <- meta%>%
+  mutate(linenumber = row_number())%>%
+  unnest_tokens(word, text)
+
+book_words <- distinct(book_words)
+
+sentbars = book_words %>%
+  inner_join(get_sentiments("bing"))%>%
+  mutate(index = linenumber %/% 25)%>%
+  group_by(index, sentiment)%>%
+  summarise(count = n())%>%
+  spread(sentiment, count, fill = 0) %>%
+  mutate(sentiment = positive - negative,
+         sentiment_group = ifelse(sentiment > 0, "pos", "neg"))
+
+ggplot(data = sentbars) +
+  geom_bar(aes(x = index, y = sentiment, fill = sentiment_group), stat = "identity")+
+  theme_classic()+
+  theme(
+    legend.position = "none"
+  )+
+  scale_fill_manual(values = c("darkred", "darkgreen"))+
+  labs(title = "The Metamorphosis of Sentiment",
+       x = "Each Bar is 25 Lines",
+       y = "Sentiment Score")
 
 
 ```
