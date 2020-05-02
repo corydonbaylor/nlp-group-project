@@ -30,8 +30,8 @@ library(rtweet)
 library(tidytext)
 library(gutenbergr)
 library(wordcloud)
-library(plyr)
-library(RSentiment)
+#library(plyr)
+#library(RSentiment)
 source("../keys.R")
 
 twitter_token <- create_token(

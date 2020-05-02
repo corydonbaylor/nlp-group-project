@@ -14,6 +14,9 @@ for(i in 1:length(files)){
   names = append(names, temp)
 }
 
+# lets remove trump as a news agency
+names = names[names != "trump"]
+
 # create a monthly df for each df loaded in
 
 all = data.frame()
@@ -60,6 +63,28 @@ final = all%>%
   mutate(weeknum = isoweek(date))%>% # what number week it is--allows us to group days into weeks
   mutate(weeknum = ifelse(weekday == "Sun", weeknum +1, weeknum))%>% # iso says that monday is the first day of the week but we want sunday to be the first day
   mutate(weeknum = factor(weeknum, rev(unique(weeknum)), ordered = T))
+
+
+ggplot(final, aes(x= weekday, y =weeknum, fill = weighted))+ 
+  geom_tile(color = "#323232")+ # makes the lines a bit more muted
+  geom_text(label = final$day, size =4, color = "black")+ # days
+  # positive days should be green and negative ones should be red
+  scale_fill_gradient2(midpoint = 0, low = "#d2222d", mid = "white", high = "#238823")+ 
+  # we are going to remove the majority of the plot 
+  theme(axis.title = element_blank(),
+        panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_blank(),
+        legend.text = element_blank(),
+        legend.position = "none",
+        plot.title = element_text(face = "bold"),
+        plot.caption = element_text(color = "#323232")
+  )+
+  labs(title = "This April in Tweets", 
+       subtitle = "A Sentiment Analysis of News Tweets",
+       caption = "Darker Green = More Positive\nDarker Red = More Negative")
+
+
 
 # proof of concept --------------------------------------------------------
 
