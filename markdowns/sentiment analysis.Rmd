@@ -163,22 +163,7 @@ radarchart(nrc_sentiment, axistype=1 ,
 
 
 
-In addition to analyzing sentiment using the `tidytext` lexicons, we can check the general polarity of our text data by using the `qdap` library. As would be expected, a positive average polarity score indicates positive sentiment.
-
-
-
-```{r warning=FALSE, message=FALSE}
-
-
-library(qdap)
-
-cruisepolarity = polarity(text)
-cruisepolarity
-
-```
-
-
-There are many other things you can do with the `qdap` [package](https://cran.r-project.org/web/packages/qdap/qdap.pdf), but let's finish by returning to the "bing" lexicon and make a chart representing the change in sentiments throughout the course of Franz Kafka's Metamorphosis. 
+Let's finish by returning to the "bing" lexicon and make a chart representing the change in sentiments throughout the course of Franz Kafka's Metamorphosis. 
 
 
 
