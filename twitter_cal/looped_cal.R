@@ -1,7 +1,9 @@
 library(dplyr)
 library(lubridate)
 library(ggplot2)
+library(tidytext)
 
+setwd("/Users/corydonbaylor/Documents/github/nlp-group-project/twitter_cal/data")
 # create a list of files to pull in
 files = list.files()
 # initiate a vector of data frame names
@@ -85,7 +87,7 @@ ggplot(final, aes(x= weekday, y =weeknum, fill = weighted))+
        caption = "Darker Green = More Positive\nDarker Red = More Negative")
 
 
-
+ggsave("all_news.png")
 # proof of concept --------------------------------------------------------
 
 # lets create two seperate dfs that will match what we are doing

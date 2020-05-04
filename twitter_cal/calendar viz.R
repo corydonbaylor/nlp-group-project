@@ -4,7 +4,7 @@ library(ggplot2)
 
 ### creating a sentiment calendar 
 
-data = breitbart
+data = reuters
 
 text = data%>%select(text, created_at)%>%
   mutate(
@@ -33,7 +33,8 @@ month = sent%>%group_by(date)%>%
   mutate(weeknum = ifelse(weekday == "Sun", weeknum +1, weeknum))%>% # iso says that monday is the first day of the week but we want sunday to be the first day
   mutate(weeknum = factor(weeknum, rev(unique(weeknum)), ordered = T) # we want the earlier weeks at the top of the calendar
   )%>%
-  filter(date >=  "2020-04-01")
+  filter(date >=  "2020-04-01",
+         date <= "2020-04-30")
 
 ggplot(month, aes(x= weekday, y =weeknum, fill = sentiment))+ 
   geom_tile(color = "#323232")+ # makes the lines a bit more muted
@@ -53,3 +54,5 @@ ggplot(month, aes(x= weekday, y =weeknum, fill = sentiment))+
   labs(title = "This April in Tweets (So Far)", 
        subtitle = "A Sentiment Analysis of News Tweets",
        caption = "Darker Green = More Positive\nDarker Red = More Negative")
+
+ggsave("dailybeast_neg.png")

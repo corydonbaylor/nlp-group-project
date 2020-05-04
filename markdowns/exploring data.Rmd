@@ -5,7 +5,7 @@ output:
   html_document:
     toc: TRUE
     toc_depth: 2
-    self_contained: true
+    self_contained: false
 ---
 
 ```{r setup, include=FALSE}
@@ -129,7 +129,7 @@ idf(word) = ln(total number of documents / number of documents containing word)
 
 It may have been a minute since you took a math class, so let's take a step back and think about what that natural log (ln) is doing there. The [natural log (ln)](https://betterexplained.com/articles/demystifying-the-natural-logarithm-ln/) can be thought of the amount of time it takes something to grow exponentially from one. So ln(1) will be 0, since it takes no time to get to where you currently are. 
 
-In other words, if a word appears in all three documents it will have a idf of 0. The more common the word across documents, the more it is discounted.  
+In other words, if a word appears in all three documents it will have a idf of 0. The more common the word across documents, the more it is discounted. This is in fact a good method to find context specific stop words in a collection of documents. Words that appear frequently in every document (and have a IDF score of 0) may be good candidates for stop words.  
 
 ### TF-IDF
 

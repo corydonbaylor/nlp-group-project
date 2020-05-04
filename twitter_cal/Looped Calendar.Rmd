@@ -15,6 +15,7 @@ library(lubridate)
 library(ggplot2)
 library(tidytext)
 library(kableExtra)
+library(forcats)
 
 ```
 
@@ -154,3 +155,28 @@ ggplot(final, aes(x= weekday, y =weeknum, fill = weighted))+
 
 
 ```
+
+## The Bipartisanship of Negativity
+
+So now that we have created a calendar that incorporates all of the news agencies, we should take a step back and see how positive or negative each individual news agency was on average. 
+
+```{r warning = FALSE, message=FALSE}
+
+rankings = all %>%
+  group_by(screen_name)%>%
+  summarise(score = mean(sentiment))%>%
+  arrange(desc(score))%>%
+  mutate(screen_name2 = fct_reorder(screen_name, score, max, .desc = F
+                         ))
+
+
+ggplot(data = rankings)+
+  geom_bar(aes(x = screen_name2, y = score), stat = "identity", fill = "#8b1700")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x = "News Organization", y = "Sentiment Score")
+
+
+```
+
+An obvious observation is that every single organization had a negative average score each day. 
