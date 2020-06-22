@@ -14,11 +14,11 @@ source("../keys.R")
 
 
 ## What is an API?
-An API stands for Application Program Interface, which may sound complicated, but all it is is a way for different programs to talk to each other. In this tutorial, we will go over a particular subset of APIs called RESTful APIs, which is simply a design pattern or type of APIs that is designed to be easy to use.
+API stands for Application Program Interface, which may sound complicated, but all it is is a way for different programs to talk to each other. In this tutorial, we will go over a particular subset of APIs called RESTful APIs, which is simply a design pattern or type of API that is designed to be easy to use.
 
 But before we go over RESTful APIs in particular, we need to define what makes an API an API. Prepare yourself for some jargon. 
 
-- **Client**: a client is the program or person who is using the API. So if you made a shiny app that used an API, than your shiny app would be the client. If you built a script than you or that script would be the client. 
+- **Client**: a client is the program or person who is using the API. So if you made a shiny app that used an API, than your shiny app would be the client. If you built a script then you or that script would be the client. 
 - **Resource**: this is the information you are trying to pull back with your API. In our example below, you will be pulling back information on Pokemon, so the pokemon is the resource. Keep in mind that each resource will have a unique identifier. 
 
 So using the technical language we have learned above, we can think of an API as a way for a **client** to pull **resources** from a server.
@@ -27,10 +27,10 @@ So using the technical language we have learned above, we can think of an API as
 
 When we use an API to interact with a resource, we are making a **request** to a server. [There are many different types of requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) that we could make, but we will go through the two most common here. 
 
-- `GET`: This request is for **getting** information from a server about a resource. As far as data analysis goes, this is likely the only way we will be interacting with a server
-- `POST`: This request is for **posting** information to a specified resource. For example, you could post a tweet using an API. This is how twitter bots operate. 
+- `GET`: This request is for **getting** information from a server about a resource. As far as data analysis goes, this is likely the only way we will be interacting with a server.
+- `POST`: This request is for **posting** information to a specified resource. For example, you could post a tweet using an API. This is how Twitter bots operate. 
 
-Let's do our first `GET` request now, but using our browser as a client instead of code. Click this [link](https://pokeapi.co/api/v2/pokemon/ditto). You should see a bunch of unintelligible text. This is response from our `GET` request. What's more important (and hopefully a bit demystifying) is the url. Let's take a closer look:
+Let's do our first `GET` request now, but using our browser as a client instead of code. Click this [link](https://pokeapi.co/api/v2/pokemon/ditto). You should see a bunch of unintelligible text. This is the response from our `GET` request. What's more important (and hopefully a bit demystifying) is the url. Let's take a closer look:
 
 `https://pokeapi.co/api/v2/pokemon/ditto`
 
@@ -42,14 +42,14 @@ The best part of APIs is that they use a common design pattern to make different
 
 REST stands for **RE**presentional **S**tate **T**ransfer. Make sense? No? We can break that down further. 
 
-The state of resources on the web is constantly changing. How many followers a twitter user has, for example, changes all the time. What a RESTful API does then is provide a *representation* of the *state* of a particular resource at any given moment. If the resource is a twitter user, than the state of the resource could be things like its follower count, number of tweets, or favorited tweets.
+The state of resources on the web is constantly changing. How many followers a Twitter user has, for example, changes all the time. What a RESTful API does then is provide a *representation* of the *state* of a particular resource at any given moment. If the resource is a Twitter user, then the state of the resource could be things like its follower count, number of tweets, or favorited tweets.
 
 
-## Querying an APIs in R
+## Querying APIs in R
 
 ### jsonlite
 
-APIs oftentimes return data in the form of JSON files, which can be thought of as akin to lists in R. When this is the case (and when life is easy and you don't need to authenicate), you can use the `jsonlite` to directly access the results. 
+APIs often return data in the form of JSON files, which can be thought of as akin to lists in R. When this is the case (and when life is easy and you don't need to authenticate), you can use `jsonlite` to directly access the results. 
 
 ```{r, message = F, warning = F}
 
@@ -67,18 +67,18 @@ APIs need a mechanism to control who accesses their data and how many and what r
 
 Another common restriction is tokens. Tokens are something like a password to use with any given API. Later in this tutorial, you will need a token in order to access OMDB's API. 
 
-Like any other password, you really shouldn't share it in a public forum like github (its typically against the ToS as well). To get around this, we will store it in a variable called `key`. So I don't have to keep manually entering `key`, I typically create it in a seperate script and put that script in the [.gitignore](https://www.atlassian.com/git/tutorials/saving-changes/gitignore). This is just a special file that git will **always** ignore. 
+Like any other password, you really shouldn't share it in a public forum like GitHub (it's typically against the ToS as well). To get around this, we will store it in a variable called `key`. So I don't have to keep manually entering `key`, I typically create it in a separate script and put that script in the [.gitignore](https://www.atlassian.com/git/tutorials/saving-changes/gitignore). This is just a special file that git will **always** ignore. 
 
-Now that we have an API Key, lets take a look at how OMDB's url to see how it fits in:
+Now that we have an API Key, let's take a look at OMDB's url to see how it fits in:
 
 `http://omdbapi.com/?apikey=<<YOUR KEY GOES HERE>>&t=<<MOVIE TITLE GOES HERE>>`
 
-Pretty simple. Put your api key after the part that says `?apikey=`. 
+Pretty simple. Put your API key after the part that says `?apikey=`. 
 
 ## Problem 1: Building a Pokemon Dataset {.tabset .tabset-fade}
 
 ### Problem
-Using the pokemon API from above, build a data frame that includes the name, height, weight, base experiance, and primary type for at least four pokemon. 
+Using the pokemon API from above, build a dataframe that includes the name, height, weight, base experience, and primary type for at least four pokemon. 
 
 **Hints**
 
@@ -90,7 +90,7 @@ If you are getting stuck, I would recommend pulling back just a single pokemon a
 
 ### Solution
 
-There will definitely be many different ways to accomplish this but I will use a combination of a `for loop`, `append()`, and `paste0()`
+There will definitely be many different ways to accomplish this, but I will use a combination of a `for loop`, `append()`, and `paste0()`
 
 ```{r, message = F, warning = F}
 
@@ -140,7 +140,7 @@ kable(head(pokemon_df), format = "html")%>%
 
 ### Problem
 
-[The Open Movie Database](http://www.omdbapi.com/apikey.aspx) has an API that allows users to pull data on up to 1,000 films a day for free. After you receive the API key in an email, activate the key following the link in the email. Then make a data frame that contains the title, year, MPAA rating, runtime, genre, and actors for a few of your favorite movies!
+[The Open Movie Database](http://www.omdbapi.com/apikey.aspx) has an API that allows users to pull data on up to 1,000 films a day for free. After you receive the API key in an email, activate the key following the link in the email. Then make a dataframe that contains the title, year, MPAA rating, runtime, genre, and actors for a few of your favorite movies!
 
 ### Solution
 
@@ -187,6 +187,6 @@ kable(head(film_df), format = "html")%>%
 
 ```
 ## Conclusion
-APIs are designed to be a stable way for scripts, programs and applications to interact with eachother. In general, if you are text mining, you will just need to `GET` requests from an API as you are hoping to *get* data. 
+APIs are designed to be a stable way for scripts, programs, and applications to interact with each other. In general, if you are text mining, you will just need to `GET` requests from an API as you are hoping to *get* data. 
 
 Since most data in APIs comes in the form of JSON files, we went over the `fromJSON()` function in `jsonlite`. However, R can do every kind of request using the `httr` package. 
