@@ -14,6 +14,7 @@ To get started, lets load in the `stringr` package as well as some data. We will
 library(stringr)
 library(dplyr)
 library(gutenbergr)
+library(kableExtra)
 
 # download heart of darkness
 hod = gutenberg_download("219") 
@@ -22,9 +23,91 @@ start = hod[11:14, 2]
 start
 ```
 
-## Pattern Matching with Regex
+## Pattern Matching with Stringr
+
+`stringr` is the tidyverse solution to working with strings.
+
+### Functions that return a vector
+
+Some stringr functions will return a single vector, which can be turned into a variable using a `mutate` function from the `dplyr` package. In my opinion, these are the most useful functions in `stringr`. They do things like return if a pattern exists, return a pattern itself, or replace a pattern with something new.  
+
+* `str_detect(string, pattern)` detects the presence or absence of a pattern in a string. It will return a TRUE FALSE based on if that pattern is found.
+* `str_extract(string, pattern)` extracts text corresponding to the matched pattern
+* `str_replace(string, pattern, replacement)` replaces a matched pattern and returns a character vector.
+
+**These functions all have a variant with an `_all` suffix, which will match all occurrences of a pattern in a string. Without this only the first pattern will be matched**
+
+Lets see how these functions compare when working with data. First we will create a data.frame with a text variable with some sample text.
+
+```{r}
+sample = data.frame(text = c("this is some sample text",
+                    "it is comprised of ample text",
+                    "I hope it will help",
+                    "if not, than 'oh welp.'",
+                    "if just text than we are in heaven,",
+                    "but life is hard so 567."
+                    ))
+
+kable(sample)%>%
+  kable_styling("striped")
+```
+
+Now lets test out `str_detect`, `str_extract`, and `str_replace` with a pattern of "if".
+
+```{r}
+
+sample%>%
+  mutate(detect = str_detect(text, "if"))%>%
+  mutate(extract = str_extract(text, "if"))%>%
+  mutate(replace = str_replace(text, "if", "IF"))%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+
+You will notice that each one of these operations matched the "if" in "life". When we get deeper into the regex portion of this lesson, we will go over how to correct for this. 
+
+### The _all suffix
+
+We mentioned earlier that by appending `_all` we will match all instances of the patterns. Let's take a look at what that means in pratice. 
+
+```{r}
+all = c("I am repetitive and repetitive")
+
+str_extract_all(all, "repetitive")
+```
+
+Unfortunately, this returns a list of the extracted patterns, so it will be a little difficult to work with this inside a dataframe. This is because you are returning multiple things into what in a dataframe would be a single observation. In other words, the string you are inputting into the function has a length of one, but the number of patterns you can return, in this case two, will oftentimes be greater than one. Thus the function returns a list.  
+
+However, if you are looking to replace all matched patterns within a string, what you return will just be the edited string. And thus, `str_replace_all()` will be tidyverse compatible.  
+
+```{r}
+all = c("I am repetitive and repetitive")
+
+str_replace_all(all, "repetitive", "very repetitive")
+```
+
+### Functions that retrun a list of vectors
+
+Sometimes you will need multiple variables to express the result of a function. In `stringr` this occurs when you are finding the starting and ending position of a pattern or splitting a string into two different variables. You won't use `mutate` when working with these functions in a tidy manner. 
+
+* `str_locate(string, pattern)` finds (or locates) the first position of a pattern and returns a matrix with a start and end
+* `str_split(string, pattern)`
+
+```{r}
+
+sample2 = data.frame(text = c("oranges and apples",
+             "pineapple and ananas"))
+# 
+# sample2 %>%
+#   str_split_fixed(text, " and ")
+```
+
 
 Now that we have our sentence, let's go over the building blocks of regex. We will be using the `str_match()` function to pull out our patterns. Throughout this tutorial, we will be combining `stringr` functions with `mutate()` to create new variables. 
+
+## Matching Basic Characters with Regex
 
 Lets start with something simple and create a new variable called "match" that has all the matches for our the pattern "flutter". That is to say, if the text contains the pattern, it will return the pattern, and if it doesn't it will return a NA.
 
@@ -36,6 +119,7 @@ start%>%
 ```
 
 Ok seems simple enough. The complexity comes in when we start dealing with special characters. What makes regex regex is that you use different characters to describe patterns. For example the . means any character. What do we think will happen if we replace flutter with the ".".
+
 ```{r warning=FALSE, message=FALSE}
 # if the word flutter wasn't in here 
 start%>%
@@ -59,7 +143,7 @@ start%>%
 
 Only two of the lines have a matching pattern because only two of the lines have a period in them. Both of the words before the period happen to be four letter words, which is convenient because the first four periods in the `....\\.` pattern will return any character, and in this case all the characters happened to be letters (if it was a three letter word it would have returned a space).
 
-## Matching Specific Characters
+## Conditional and Optional Patterns
 
 While Heart of Darkness is an interesting book, next we are going to work a more targeted dataset. This may be a little more abstract and unlike data you might see in the wild but will better illustrate how the pattern matching works! First lets create our data.
 
@@ -86,5 +170,63 @@ What about characters that we don't want included? While there are only three ch
 # if the word flutter wasn't in here 
 text%>%
   mutate(match = str_match(characters, "[^rt]an"))
+
+```
+
+This leads to the obvious question, what if we had a long list of characters we wanted to exclude or include? What would be the short hand for that? We can use the `-` operator to find characters between two characters. In my opinion this works best for numbers, but lets see how this would work on our previous dataset just pulling back characters that have a first letter between "e" and "s".
+
+```{r warning=FALSE, message=FALSE}
+# if the word flutter wasn't in here 
+text%>%
+  mutate(match = str_match(characters, "[e-r]an"))
+
+```
+
+In the above cases, we knew that we wanted at least one of the characters. What about when a pattern is completely optional. For example, can we make a regex that pulls back both "successful" and unsuccessful"? 
+
+No we cannot, it is beyond science. 
+
+Of course, this is not the case. We can use the `?` operator. Putting a `?` after a character will make that character optional in the pattern. For example:
+
+```{r warning=FALSE, message=FALSE}
+# if the word flutter wasn't in here 
+
+str_match(c("successful", "unsuccessful", "failure"), "u?n?successful")%>%
+  kable()
+
+```
+
+As you can see, the regex pulled back successful and unsuccessful but not failure because the "un" was optional due to the `?`.
+
+## Handling Repetitions 
+
+Sometimes data that we want to match or even remove will have a series of repetitions in it. To handle these cases, we use the curely braces or `{}`. To use this, first put the pattern and then the number of times the repetition occurs. For example, "aaa" would be `a{3}`.
+
+```{r warning=FALSE, message = FALSE}
+
+text = data.frame(
+  characters = c("wazup", "wazzup", "wazzzup", "wazzzzup", "naaaada")
+)
+
+text%>%
+  mutate(match = str_match(characters, "waz{3}up"))
+
+```
+
+You can even specify a range using a comma. 
+
+```{r warning=FALSE, message = FALSE}
+
+text%>%
+  mutate(match = str_match(characters, "waz{3,4}up"))
+
+```
+
+As a challenge, what would you need to do to match just the 3rd and 5th rows, "wazzzup" and "naaaada"?
+
+```{r warning=FALSE, message = FALSE}
+
+text%>%
+  mutate(match = str_match(characters, ".a.{3}[du]."))
 
 ```
