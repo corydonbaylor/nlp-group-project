@@ -7,22 +7,6 @@ A (very) important part of natural language processing is searching for patterns
 
 In this tutorial, we will go through how regex is used in R and specifically in the `tidyverse` via the `stringr` package. 
 
-To get started, lets load in the `stringr` package as well as some data. We will be working with *Heart of Darkness* by Joseph Conrad. Let's start by working with the first four lines of book (which make up the first two sentences). 
-
-```{r warning=FALSE, message=FALSE}
-
-library(stringr)
-library(dplyr)
-library(gutenbergr)
-library(kableExtra)
-
-# download heart of darkness
-hod = gutenberg_download("219") 
-# pull the first two lines of the book and collapse them into a single character vector
-start = hod[11:14, 2]
-start
-```
-
 ## Pattern Matching with Stringr
 
 `stringr` is the tidyverse solution to working with strings.
@@ -57,9 +41,9 @@ Now lets test out `str_detect`, `str_extract`, and `str_replace` with a pattern 
 ```{r}
 
 sample%>%
-  mutate(detect = str_detect(text, "if"))%>%
-  mutate(extract = str_extract(text, "if"))%>%
-  mutate(replace = str_replace(text, "if", "IF"))%>%
+  mutate(detect = str_detect(text, "if"),
+         extract = str_extract(text, "if"),
+         replace = str_replace(text, "if", "IF"))%>%
   kable()%>%
   kable_styling("striped")
 
@@ -97,55 +81,51 @@ Sometimes you will need multiple variables to express the result of a function. 
 
 ```{r}
 
-sample2 = data.frame(text = c("oranges and apples",
-             "pineapple and ananas"))
-# 
-# sample2 %>%
-#   str_split_fixed(text, " and ")
+text = c("oranges and apples",
+             "pineapple and ananas")
+
+str_split_fixed(text, " and ", n = 2)
 ```
 
+## Metacharacters in Regex
 
-Now that we have our sentence, let's go over the building blocks of regex. We will be using the `str_match()` function to pull out our patterns. Throughout this tutorial, we will be combining `stringr` functions with `mutate()` to create new variables. 
+So we have gone over how the three main functions of stringr works with basic patterns. The power of regex comes from using special characters or combinations of characters to mean something different than their literal meaning. For example, a period `.` typically signifies the end of a sentence, but in regex, it serves as a stand in for any character. 
 
-## Matching Basic Characters with Regex
+Let's see go over a bunch of these special characters in regex. Look at the comment for how the metacharacter works.
 
-Lets start with something simple and create a new variable called "match" that has all the matches for our the pattern "flutter". That is to say, if the text contains the pattern, it will return the pattern, and if it doesn't it will return a NA.
+```{r}
 
-```{r warning=FALSE, message=FALSE}
-# if the word flutter wasn't in here 
-start%>%
-  mutate(match = str_match(text, "flutter"))
-
-```
-
-Ok seems simple enough. The complexity comes in when we start dealing with special characters. What makes regex regex is that you use different characters to describe patterns. For example the . means any character. What do we think will happen if we replace flutter with the ".".
-
-```{r warning=FALSE, message=FALSE}
-# if the word flutter wasn't in here 
-start%>%
-  mutate(match = str_match(text, "."))
+sample%>%
+  mutate(period = str_extract(text, "."), # . stands for anything. It will return the first character
+         character = str_extract(text, "\\w"), # \\w stands for any character
+         digit = str_extract(text, "\\d"), # \\d stands for any digit
+         white_space = str_extract(text, "\\s")) # \\ stands for any whitespace
+  
+  
 
 ```
 
-As we can see, it pulls back the first character from each line. It only pulls back one character because it returns the *first* match of the pattern. To pull back all matches, use `str_match_all()`.
+Moving forward, we will refer to characters that only retain their literal meaning as literals. 
 
-### String Literals
+### Escaping Special Characters
+
 This naturally leads to the question of how do you match a period. You use the escape character which is a backward slash `\`. This will tell regex to interpret the next character as a "literal". In R, you have to double escape or write: `\\`.
 
-If we had the pattern of `....\\.` what do we think we would get?
-
 ```{r warning=FALSE, message=FALSE}
 # if the word flutter wasn't in here 
-start%>%
-  mutate(match = str_match(text, "....\\."))
+sample%>%
+  mutate(detect = str_detect(text, "\\."),
+         extract = str_extract(text, "\\."),
+         replace = str_replace(text, "\\.", "REPLACE"))%>%
+  kable()%>%
+  kable_styling("striped")
+
 
 ```
-
-Only two of the lines have a matching pattern because only two of the lines have a period in them. Both of the words before the period happen to be four letter words, which is convenient because the first four periods in the `....\\.` pattern will return any character, and in this case all the characters happened to be letters (if it was a three letter word it would have returned a space).
 
 ## Conditional and Optional Patterns
 
-While Heart of Darkness is an interesting book, next we are going to work a more targeted dataset. This may be a little more abstract and unlike data you might see in the wild but will better illustrate how the pattern matching works! First lets create our data.
+First lets create our data.
 
 ```{r warning=FALSE, message = FALSE}
 
@@ -160,7 +140,7 @@ Now lets match just can, man, and fan on this set. We can use the `[]` to match 
 ```{r warning=FALSE, message=FALSE}
 # if the word flutter wasn't in here 
 text%>%
-  mutate(match = str_match(characters, "[cmf]an"))
+  mutate(match = str_extract(characters, "[cmf]an"))
 
 ```
 
