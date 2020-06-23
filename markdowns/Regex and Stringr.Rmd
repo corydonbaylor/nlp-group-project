@@ -28,7 +28,7 @@ sample = data.frame(text = c("this is some sample text",
                     "it is comprised of ample text",
                     "I hope it will help",
                     "if not, than 'oh welp.'",
-                    "if just text than we are in heaven,",
+                    "text only and we in heaven,",
                     "but life is hard so 567."
                     ))
 
@@ -72,21 +72,6 @@ all = c("I am repetitive and repetitive")
 str_replace_all(all, "repetitive", "very repetitive")
 ```
 
-### Functions that retrun a list of vectors
-
-Sometimes you will need multiple variables to express the result of a function. In `stringr` this occurs when you are finding the starting and ending position of a pattern or splitting a string into two different variables. You won't use `mutate` when working with these functions in a tidy manner. 
-
-* `str_locate(string, pattern)` finds (or locates) the first position of a pattern and returns a matrix with a start and end
-* `str_split(string, pattern)`
-
-```{r}
-
-text = c("oranges and apples",
-             "pineapple and ananas")
-
-str_split_fixed(text, " and ", n = 2)
-```
-
 ## Metacharacters in Regex
 
 So we have gone over how the three main functions of stringr works with basic patterns. The power of regex comes from using special characters or combinations of characters to mean something different than their literal meaning. For example, a period `.` typically signifies the end of a sentence, but in regex, it serves as a stand in for any character. 
@@ -116,71 +101,70 @@ This naturally leads to the question of how do you match a period. You use the e
 sample%>%
   mutate(detect = str_detect(text, "\\."),
          extract = str_extract(text, "\\."),
-         replace = str_replace(text, "\\.", "REPLACE"))%>%
+         replace = str_replace(text, "\\.", " :D"))%>%
   kable()%>%
   kable_styling("striped")
 
 
 ```
 
-## Conditional and Optional Patterns
+## Anchors
 
-First lets create our data.
+Oftentimes, where the pattern is in the string will matter. Using the `^` will only match the pattern if it is at the *start* of the string, and `$` will only match the pattern if it is at the *end* of the string. 
 
 ```{r warning=FALSE, message = FALSE}
 
-text = data.frame(
-  characters = c("can", "man", "fan", "ran", "tan")
+sample%>%
+  mutate(start = str_replace(text, "^text", "----"),
+         end = str_replace(text, "text$", "----"))%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+## Character and Numeric Ranges 
+
+Ranges allow for you to have multiple possible patterns to match against. Ranges are called using brackets `[]`. 
+
+* `[abc]` will be a, b or c.
+* `[^abc]` will be neither a nor b nor c (due to the carrot `^`)
+* `[a-c]` will be a *through* c.
+
+```{r warning=FALSE, message = FALSE}
+
+characters = data.frame(
+  text = c("can", "man", "fan", "ran", "tan")
 )
 
-```
-
-Now lets match just can, man, and fan on this set. We can use the `[]` to match specific characters. Think of it like an OR statement. `[abc]` will be a, b or c. So how could we apply this to match just can, man, and fan? 
-
-```{r warning=FALSE, message=FALSE}
-# if the word flutter wasn't in here 
-text%>%
-  mutate(match = str_extract(characters, "[cmf]an"))
+characters %>%
+  mutate(match = str_extract(text, "[cmf]an"),
+         match = str_match(text, "[^rt]an"),
+         match = str_match(text, "[e-r]an")
+         )
 
 ```
 
-What about characters that we don't want included? While there are only three characters that we would place inside our square brackets this time, what if we wanted to include all characters except just one or two? We would use the `^` operator then. Just put it at the beginning of your square brackets!
+The same rules will apply for numbers as well as letters. But its important to remember that for regex, numbers are treated the same as characters. So 154 isnt 154 but 1, 5 and 4. 
 
-```{r warning=FALSE, message=FALSE}
-# if the word flutter wasn't in here 
-text%>%
-  mutate(match = str_match(characters, "[^rt]an"))
+```{r warning=FALSE, message = FALSE}
 
-```
+numbers = data.frame(
+  text = c(10, 4, 22, 35, 1, 0)
+)
 
-This leads to the obvious question, what if we had a long list of characters we wanted to exclude or include? What would be the short hand for that? We can use the `-` operator to find characters between two characters. In my opinion this works best for numbers, but lets see how this would work on our previous dataset just pulling back characters that have a first letter between "e" and "s".
-
-```{r warning=FALSE, message=FALSE}
-# if the word flutter wasn't in here 
-text%>%
-  mutate(match = str_match(characters, "[e-r]an"))
-
-```
-
-In the above cases, we knew that we wanted at least one of the characters. What about when a pattern is completely optional. For example, can we make a regex that pulls back both "successful" and unsuccessful"? 
-
-No we cannot, it is beyond science. 
-
-Of course, this is not the case. We can use the `?` operator. Putting a `?` after a character will make that character optional in the pattern. For example:
-
-```{r warning=FALSE, message=FALSE}
-# if the word flutter wasn't in here 
-
-str_match(c("successful", "unsuccessful", "failure"), "u?n?successful")%>%
-  kable()
+numbers %>%
+  mutate(
+        one2nine = str_extract(text, "[1-9]$"),
+        ten2fifty = str_extract(text, "[1-5][0-9]"),
+        one2twentynine = str_extract(text, "^[1-9]$|^[1-2][0-9]$"),
+         )
 
 ```
 
-As you can see, the regex pulled back successful and unsuccessful but not failure because the "un" was optional due to the `?`.
 
 ## Handling Repetitions 
 
-Sometimes data that we want to match or even remove will have a series of repetitions in it. To handle these cases, we use the curely braces or `{}`. To use this, first put the pattern and then the number of times the repetition occurs. For example, "aaa" would be `a{3}`.
+Sometimes data that we want to match or even remove will have a series of repetitions in it. To handle these cases, we use the curely braces or `{}`. To use this, first put the pattern and then the number of times the repetition occurs. For example, "aaa" would be `a{3}`. You can even specify a range using a comma like `a{3-4}`. 
 
 ```{r warning=FALSE, message = FALSE}
 
@@ -189,24 +173,9 @@ text = data.frame(
 )
 
 text%>%
-  mutate(match = str_match(characters, "waz{3}up"))
-
-```
-
-You can even specify a range using a comma. 
-
-```{r warning=FALSE, message = FALSE}
-
-text%>%
-  mutate(match = str_match(characters, "waz{3,4}up"))
-
-```
-
-As a challenge, what would you need to do to match just the 3rd and 5th rows, "wazzzup" and "naaaada"?
-
-```{r warning=FALSE, message = FALSE}
-
-text%>%
-  mutate(match = str_match(characters, ".a.{3}[du]."))
+  mutate(
+      reps = str_match(characters, "waz{3}up"),
+      rep_range = str_match(characters, "waz{3,4}up")
+         )
 
 ```
