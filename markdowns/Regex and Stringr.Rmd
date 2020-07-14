@@ -54,7 +54,7 @@ sample%>%
 ```
 
 
-You will notice that each one of these operations matched the "if" in "life". When we get deeper into the regex portion of this lesson, we will go over how to correct for this. 
+You will notice that each one of these operations matched the "if" in "life". You can put spaces around the if to avoid this like so " if ".
 
 ### The _all suffix
 
@@ -75,14 +75,17 @@ all = c("I am repetitive and repetitive")
 
 str_replace_all(all, "repetitive", "very repetitive")
 ```
+## Basic Pattern Matching in Regex
 
-## Metacharacters in Regex
+We have gone over how the three main functions of stringr works with basic patterns. Above in we were working with literal patterns, meaning that if we told `str_replace()` to replace a pattern of "xyz", it would look for the "xyz" characters and replace them. However, regex can do much more than that. Learning the material in this section will likely serve you well enough to complete most data munging tasks with text.  
 
-So we have gone over how the three main functions of stringr works with basic patterns. The power of regex comes from using special characters or combinations of characters to mean something different than their literal meaning. For example, a period `.` typically signifies the end of a sentence, but in regex, it serves as a stand in for any character. 
+### Metacharacters in Regex
 
-Let's see go over a bunch of these special characters in regex. Look at the comment for how the metacharacter works.
+The power of regex comes from using special characters or combinations of characters to mean something different than their literal meaning. For example, a period typically signifies the end of a sentence, but in regex, it serves as a stand in for any character. 
 
-```{r}
+Let's see go over four of these special characters in regex. Look at the comment for how the metacharacter works.
+
+```{r warning=FALSE, message=FALSE}
 
 sample%>%
   mutate(period = str_extract(text, "."), # . stands for anything. It will return the first character
@@ -95,14 +98,12 @@ sample%>%
 
 ```
 
-Moving forward, we will refer to characters that only retain their literal meaning as literals. 
-
 ### Escaping Special Characters
 
 This naturally leads to the question of how do you match a period. You use the escape character which is a backward slash `\`. This will tell regex to interpret the next character as a "literal". In R, you have to double escape or write: `\\`.
 
 ```{r warning=FALSE, message=FALSE}
-# if the word flutter wasn't in here 
+
 sample%>%
   mutate(detect = str_detect(text, "\\."),
          extract = str_extract(text, "\\."),
@@ -110,10 +111,9 @@ sample%>%
   kable()%>%
   kable_styling("striped")
 
-
 ```
 
-## Anchors
+### Anchors
 
 Oftentimes, where the pattern is in the string will matter. Using the `^` will only match the pattern if it is at the *start* of the string, and `$` will only match the pattern if it is at the *end* of the string. 
 
@@ -127,11 +127,15 @@ sample%>%
 
 ```
 
-## Groups
+## Advanced Pattern Matching in Regex
+
+Now that you understand how to use regex to match basic patterns with some simple tricks such as anchors and metacharacters, we will introduce some more advanced concepts. These should serve as a building block for allowing you to complete more advanced tasks like pulling file names or phone numbers out of long strings of text.
+
+### Groups
 
 Groups allow you to extract patterns from text without extracting the entire pattern. This can be really useful for extracting things like file names or urls. 
 
-Unfortunately, actually pulling out just the information you need is a little more complicated than you would expect. Especially if you want to stay in a tidy framework. 
+Unfortunately, actually pulling out just the information you need is a little more complicated than you would expect, especially if you want to stay in a tidy framework. 
 
 First lets look at the solution:
 
@@ -150,7 +154,7 @@ characters%>%
 
 ```
 
-First, notice that we are using `str_match` instead of `str_extract`. This is because `str_extract` does not work with groups. More importantly, note that we had to wrap the `str_match` in an `unlist` function.  
+Notice that we are using `str_match()` instead of `str_extract()`. This is because `str_extract()` does not work with groups. More importantly, note that we had to wrap the `str_match()` in an `unlist()` function.  
 
 ```{r warning=FALSE, message = FALSE}
 
@@ -160,9 +164,11 @@ str_match_all(text, "(.*?)\\.pdf$")
 
 ```
 
-For groups, `str_match` will return a **list** with both the full pattern matched and the *just* the group matched as well. For our use case, we are just interested in the matched group. So there we go! We just need to `unlist` (in order to take the patterns out of a list) the variable, and we should have what we need right? And since unlist will put the items in a vector, we just need the second item in the vector.
+For groups, `str_match()` will return a **list** with both the full pattern matched and the *just* the group matched as well. For our use case, we are just interested in the matched group. 
 
-```{r}
+So you would think we just need to `unlist()` (in order to take the patterns out of a list) the variable, and we should have what we need right? And since unlist will put the items in a vector, we just need the second item in the vector.
+
+```{r warning=FALSE, message=FALSE}
 
 characters%>%
   mutate(match = unlist(str_match_all(text, "(.*?)\\.pdf$"))[2])%>%
@@ -174,16 +180,16 @@ characters%>%
 
 Whoops! That put everything into one vector and returned the same element, the second element, for every single variable. To fix this, use a `group_by()` ahead of your mutate so that a unique vector, with only two elements, will be created for each unique row. 
 
-If you are confused as to why the same thing was returned repeatedly without a `group_by` check out what the match variable would look like as a vector. 
+If you are confused as to why the same thing was returned repeatedly without a `group_by()` check out what the match variable would look like as a vector. 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 match = unlist(str_match_all(text, "(.*?)\\.pdf$"))
 match
 
 ```
 
-## Character and Numeric Ranges 
+### Character and Numeric Ranges 
 
 Ranges allow for you to have multiple possible patterns to match against. Ranges are called using brackets `[]`. 
 
@@ -226,5 +232,18 @@ numbers %>%
 
 ```
 
+### Repeating Patterns
 
+Writing regex can be tedious. Let's say we wanted to find a phone number in some text. Using the digit metacharater we learned earlier we could write something like `\\d\\d\\d-\\d\\d\\d\\d`. 
+
+However using curly brackets, we could specify the number of *repitions* for a given character. For example, we could simplify the above regex to the following `\\d{3}-\\d{4}`.
+
+To give a more realistic example, let's say you are talking to a cute girl or guy and they want to give you their number. At this point, you are very eyes-on-the-prize and are not interested in what they have to say but just need those digits. You can use regex to get just the information you need and filter out the unimportant stuff. 
+
+```{r}
+
+text = "Anywho, I, who am your very cute crush, think you are very cute yourself and I wanted to give you my number. But I am so embarassed, so I am fumbling over my words because you are so attractive and oh dear, I promise I am not usually like this. Well anywho, the digits! I was supposed to give those to you, but wait just a moment what was my own number again. Ah yes it is 555-6789. You got that? You didn't write it down. Do you need me to text it to you? Oh you will text me first. Good. I am excited."
+
+str_extract(text, "\\d{3}-\\d{4}")
+```
 
