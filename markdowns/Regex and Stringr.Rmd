@@ -9,21 +9,25 @@ In this tutorial, we will go through how regex is used in R and specifically in 
 
 ## Pattern Matching with Stringr
 
-`stringr` is the tidyverse solution to working with strings.
+`stringr` is the tidyverse solution to working with strings. That means that it plugs in well with packages like `tidytext`, `dplyr` and `tidyr`.
 
-### Functions that return a vector
-
-Some stringr functions will return a single vector, which can be turned into a variable using a `mutate` function from the `dplyr` package. In my opinion, these are the most useful functions in `stringr`. They do things like return if a pattern exists, return a pattern itself, or replace a pattern with something new.  
+Some stringr functions will return a single vector, which can be turned into a variable using a `mutate` function from the `dplyr` package. In my opinion, these are the most useful functions in `stringr`. They do things like return if a pattern exists, return a pattern itself, or replace a pattern with something new. While `stringr` has more functions, which you can learn more about [here](https://stringr.tidyverse.org), the below four functions make up the backbone of the package. s  
 
 * `str_detect(string, pattern)` detects the presence or absence of a pattern in a string. It will return a TRUE FALSE based on if that pattern is found.
 * `str_extract(string, pattern)` extracts text corresponding to the matched pattern
+* `str_match(string, pattern)` match text according to a pattern and returns it. Functionally, it is often the same as `str_extract()` but must be used instead of `str_extract()` in specialized instances. 
 * `str_replace(string, pattern, replacement)` replaces a matched pattern and returns a character vector.
 
 **These functions all have a variant with an `_all` suffix, which will match all occurrences of a pattern in a string. Without this only the first pattern will be matched**
 
 Lets see how these functions compare when working with data. First we will create a data.frame with a text variable with some sample text.
 
-```{r}
+```{r warning=FALSE, message=FALSE}
+
+library(dplyr)
+library(stringr)
+library(kableExtra)
+
 sample = data.frame(text = c("this is some sample text",
                     "it is comprised of ample text",
                     "I hope it will help",
@@ -38,7 +42,7 @@ kable(sample)%>%
 
 Now lets test out `str_detect`, `str_extract`, and `str_replace` with a pattern of "if".
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 
 sample%>%
   mutate(detect = str_detect(text, "if"),
@@ -84,8 +88,9 @@ sample%>%
   mutate(period = str_extract(text, "."), # . stands for anything. It will return the first character
          character = str_extract(text, "\\w"), # \\w stands for any character
          digit = str_extract(text, "\\d"), # \\d stands for any digit
-         white_space = str_extract(text, "\\s")) # \\ stands for any whitespace
-  
+         white_space = str_extract(text, "\\s"))%>% # \\ stands for any whitespace
+  kable()%>%
+  kable_styling("striped")
   
 
 ```
@@ -122,6 +127,62 @@ sample%>%
 
 ```
 
+## Groups
+
+Groups allow you to extract patterns from text without extracting the entire pattern. This can be really useful for extracting things like file names or urls. 
+
+Unfortunately, actually pulling out just the information you need is a little more complicated than you would expect. Especially if you want to stay in a tidy framework. 
+
+First lets look at the solution:
+
+```{r warning=FALSE, message = FALSE}
+
+characters = data.frame(
+  text = c("file_record_transcript.pdf", "file_07241999.pdf", "testfile_fake.pdf.tmp")
+)
+
+characters%>%
+  group_by(text)%>%
+  mutate(match = unlist(str_match_all(text, "(.*?)\\.pdf$"))[2])%>%
+  kable()%>%
+  kable_styling("striped")
+
+
+```
+
+First, notice that we are using `str_match` instead of `str_extract`. This is because `str_extract` does not work with groups. More importantly, note that we had to wrap the `str_match` in an `unlist` function.  
+
+```{r warning=FALSE, message = FALSE}
+
+text = c("file_record_transcript.pdf", "file_07241999.pdf", "testfile_fake.pdf.tmp")
+
+str_match_all(text, "(.*?)\\.pdf$")
+
+```
+
+For groups, `str_match` will return a **list** with both the full pattern matched and the *just* the group matched as well. For our use case, we are just interested in the matched group. So there we go! We just need to `unlist` (in order to take the patterns out of a list) the variable, and we should have what we need right? And since unlist will put the items in a vector, we just need the second item in the vector.
+
+```{r}
+
+characters%>%
+  mutate(match = unlist(str_match_all(text, "(.*?)\\.pdf$"))[2])%>%
+  kable()%>%
+  kable_styling("striped")
+
+
+```
+
+Whoops! That put everything into one vector and returned the same element, the second element, for every single variable. To fix this, use a `group_by()` ahead of your mutate so that a unique vector, with only two elements, will be created for each unique row. 
+
+If you are confused as to why the same thing was returned repeatedly without a `group_by` check out what the match variable would look like as a vector. 
+
+```{r}
+
+match = unlist(str_match_all(text, "(.*?)\\.pdf$"))
+match
+
+```
+
 ## Character and Numeric Ranges 
 
 Ranges allow for you to have multiple possible patterns to match against. Ranges are called using brackets `[]`. 
@@ -140,7 +201,9 @@ characters %>%
   mutate(match = str_extract(text, "[cmf]an"),
          match = str_match(text, "[^rt]an"),
          match = str_match(text, "[e-r]an")
-         )
+         )%>%
+  kable()%>%
+  kable_styling("striped")
 
 ```
 
@@ -149,33 +212,19 @@ The same rules will apply for numbers as well as letters. But its important to r
 ```{r warning=FALSE, message = FALSE}
 
 numbers = data.frame(
-  text = c(10, 4, 22, 35, 1, 0)
+  text = c(10, 4, 22, 35, 1, 0, 300, 199)
 )
 
 numbers %>%
   mutate(
-        one2nine = str_extract(text, "[1-9]$"),
-        ten2fifty = str_extract(text, "[1-5][0-9]"),
+        one2nine = str_extract(text, "^[1-9]$"),
+        ten2fiftynine = str_extract(text, "^[1-5][0-9]$"),
         one2twentynine = str_extract(text, "^[1-9]$|^[1-2][0-9]$"),
-         )
+         )%>%
+  kable()%>%
+  kable_styling("striped")
 
 ```
 
 
-## Handling Repetitions 
 
-Sometimes data that we want to match or even remove will have a series of repetitions in it. To handle these cases, we use the curely braces or `{}`. To use this, first put the pattern and then the number of times the repetition occurs. For example, "aaa" would be `a{3}`. You can even specify a range using a comma like `a{3-4}`. 
-
-```{r warning=FALSE, message = FALSE}
-
-text = data.frame(
-  characters = c("wazup", "wazzup", "wazzzup", "wazzzzup", "naaaada")
-)
-
-text%>%
-  mutate(
-      reps = str_match(characters, "waz{3}up"),
-      rep_range = str_match(characters, "waz{3,4}up")
-         )
-
-```
