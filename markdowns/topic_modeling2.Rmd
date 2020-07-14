@@ -1,0 +1,137 @@
+---
+title: "Topic Modeling"
+author: "Team Hanley NLP Working Group"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction to Topic Modeling with LDA
+Topic modeling is a way of dividing unstructured data (like text) into topics based on the words or word phrases that make up the dataset. With text data, a topic model will divide the words into natural groups even when we don't know what topics may be discussed in the text.
+
+LDA, or Latent Dirichlet Allocation is a common type of probabalistic topic modeling that assigns a probability score (beta) to each word, indicating the probability for that word to belong to a topic in the dataset. Any document can consist of multiple topics, and any topic consists of multiple key words. LDA takes this into consideration when assigning probability scores. Any word could be part of multiple topics, but may have a higher beta score for topic A over topic B, meaning that it is more likely this word is part of topic A, but could possibly be part of topic B.
+
+
+Let's look at an example of topic modeling using LDA. We'll use a dataset from Kaggle made up of ~20k political news articles. To make our processing faster, we will only look at the first 5000 news articles in this example. 
+
+Let's start by reading in the CSV ("True.csv") that contains the names, dates, and text from the articles. Once the CSV is read in, we will limit it to the first 5000 rows.
+```{r, message=F, warning=F, error = F}
+library(topicmodels)
+library(tm)
+library(tidytext)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+
+data <- read.csv("True.csv", header = T, stringsAsFactors = FALSE)
+data <- data[1:5000,]
+
+```
+## Pre-Processing and Data Cleaning
+Now let's use the unnest_tokens function to divide our dataframe into one word tokens. We will also remove stopwords here and add word counts. 
+```{r, message=F, warning=F, error = F}
+data_tokenized <- data %>% 
+  unnest_tokens(word, text)
+
+# removing stopwords and finding document-word counts
+data_word_counts <- data_tokenized %>%
+  anti_join(stop_words) %>%
+  filter(!str_detect(word, "[^[:alnum:]]")) %>%
+  filter(!str_detect(word,"â")) %>%
+  count(title,word,sort=TRUE) %>%
+  ungroup()
+
+data_word_counts
+
+most_frequent_words <- data_tokenized %>%
+  anti_join(stop_words) %>%
+  filter(!str_detect(word, "[^[:alnum:]]")) %>%
+  filter(!str_detect(word,"â")) %>%
+  count(word,sort=TRUE) %>%
+  ungroup()
+
+most_frequent_words
+
+# We can see that some frequent words are not going to be helpful in telling us what these articles are about and will just create noise. We already know that these are political articles written while the President is Donald Trump. Let's add some of these words to a custom stopwords list.
+custom.stopwords <- c("trump", "president", "reuters", "donald", "united","told",
+                      "white", "house","government")
+
+data_word_counts.2 <- data_tokenized %>%
+  anti_join(stop_words) %>%
+  filter(!word %in% custom.stopwords) %>%
+  filter(!str_detect(word, "[^[:alnum:]]")) %>%
+  filter(!str_detect(word,"â")) %>%
+  count(title,word,sort=TRUE) %>%
+  ungroup()
+
+data_word_counts.2
+
+```
+Using cast_dtm, we can convert our dataframe into a document term matrix (DTM), which is the format we will need in order to create an LDA topic model. A DTM is a matrix that contains documents and terms as dimensions. You can choose which ngram you want to tokenize by when creating your DTM. Here we are using unigrams.
+```{r, message=F, warning=F, error = F}
+data_dtm <- data_word_counts.2 %>%
+  cast_dtm(title,word,n)
+
+data_dtm
+```
+
+## Building the LDA Model
+Time for some topic modeling! We can use the LDA model to divide the text into topics. We will set k=5 to discover 5 overarching topics that make up our 5000 articles.  
+```{r, message=F, warning=F, error = F}
+data_lda <- LDA(data_dtm, k = 5, control = list(seed = 1234))
+data_lda
+```
+
+With the tidy() function, we will convert this LDA into a one topic per word per row table, giving us the probability that a word belongs to any given topic. "Beta" is the method that provides the per-topic-per-word probability scores. By setting matrix = "beta", we are creating an LDA model that tells us the probability of each word belonging to each topic.
+```{r, message=F, warning=F, error = F}
+topics <- tidy(data_lda, matrix = "beta")
+topics
+```
+Let's take a look at the top terms per topic using the top_n() function.
+```{r, message=F, warning=F, error = F}
+top_terms <- topics %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>%
+  ungroup() %>%
+  arrange(topic, -beta)
+
+top_terms
+```
+```{r, message=F, warning=F, error = F}
+
+top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(term, beta, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  coord_flip() +
+  scale_x_reordered()
+
+```
+
+
+Here we see that the most common terms from topic 5 are "north", "korea", "china", "nuclear", "trade", etc. This suggests that topic 5  is about foreign nuclear trade discussions that the US has had with North Korea and China. Topic 2 mentions words such as "russia", "election", "intelligence", etc. Therefore Topic 2 is most likely about news discussing the possibility of Russia having interfered in the 2016 election. LDA does not assign overarching names to topics, however we can understand the general content of topics by looking at the top words that make them up.
+
+Alternatively, we can set the argument matrix = "gamma" if we want to create a model that shows the per-document-per-topic probability. In other words, lets look at the probability that the topics above are discussed within each of the articles in our dataset.
+```{r, message=F, warning=F, error = F}
+gamma_model <- tidy(data_lda, matrix = "gamma")
+gamma_model %>%
+  arrange(desc(gamma))
+```
+
+Looking at the gamma scores for this topic model, we see that some articles focus almost entirely on one topic. For example, the article titled, "Republicans unveil tax cut bill, but the hard work awaits" has a gamma score of ~99% for Topic 1. Looking at the top 10 words from topic 1, we can infer that this article is almost entirely about tax bills and legislation around healthcare. 
+
+```{r, message=F, warning=F, error = F}
+gamma_model %>%
+  arrange(document)
+```
+Alternatively, some articles are made up of a mixture of our 5 topics. For example, the article titled, "Ashamed Franken says he won't quit Senate over groping accusations" partially discusses words from all 5 topics, but has the highest score of ~10% for topic 2. Gamma scores look at the words within each article and the overlap of those words in each of our previously generated topics. The more words an article has from one of our topics, the higher gamma score that topic will get for the article at hand.
+
+A next step here if you want to take a deep dive into some if these articles would be to tokenize an individual article into unigrams to compare the top words in an article to the top words in our 5 topics!
+
+Topic Modeling is a great way to get an idea of general themes or subjects discussed in a large set of text data. This can help gain an understanding of the contents of the data before doing a deeper dive.
