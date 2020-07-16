@@ -24,6 +24,7 @@ For our example, we'll examine a dataset that contains the texts of 200 news art
 
 library(data.table)
 library(textmineR)
+library(stringr)
 library(dplyr) 
 setwd("C:/Users/603281/Desktop/NLP_R_Practice/nlp_github_repo/nlp-group-project/")
 # source("../")
@@ -35,7 +36,11 @@ df = fread("articles_clean.csv")
 ```{r warning=FALSE, message=FALSE}
 
 text = df %>% select(Article)%>%
-  mutate(Article = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", df$Article))
+  filter(!str_detect(word, "[^[:alnum:]]"))
+
+
+# text = df %>% select(Article)%>%
+#   mutate(Article = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", df$Article))
 
 ```
 
