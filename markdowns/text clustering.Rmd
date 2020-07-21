@@ -30,14 +30,6 @@ setwd("C:/Users/603281/Desktop/NLP_R_Practice/nlp_github_repo/nlp-group-project/
 # source("../")
 
 df = fread("articles_clean.csv")
-```
-
-
-```{r warning=FALSE, message=FALSE}
-
-text = df %>% select(Article)%>%
-  filter(!str_detect(word, "[^[:alnum:]]"))
-
 
 # text = df %>% select(Article)%>%
 #   mutate(Article = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", df$Article))
@@ -51,8 +43,8 @@ Then we'll make a document term matrix and create a matrix of term counts to get
 ```{r warning=FALSE, message=FALSE}
 
 # create a document term matrix 
-dtm <- CreateDtm(doc_vec = df$abstract, # character vector of documents
-                 doc_names = df$cord_uid, # document names
+dtm <- CreateDtm(doc_vec = df$Article, # character vector of documents
+                 # doc_names = df$cord_uid, # document names
                  ngram_window = c(1, 2), # minimum and maximum n-gram length
                  stopword_vec = c(stopwords::stopwords("en"), # stopwords from tm
                                   stopwords::stopwords(source = "smart")), # this is the default value
@@ -60,7 +52,8 @@ dtm <- CreateDtm(doc_vec = df$abstract, # character vector of documents
                  remove_punctuation = TRUE, # punctuation - this is the default
                  remove_numbers = TRUE, # numbers - this is the default
                  verbose = FALSE, # Turn off status bar for this demo
-                 cpus = 2) # default is all available cpus on the system
+                 cpus = 2
+                 ) # default is all available cpus on the system
 
 # construct the matrix of term counts to get the IDF vector
 tf_mat <- TermDocFreq(dtm)
@@ -89,7 +82,7 @@ hc <- hclust(cdist, "ward.D")
 
 clustering <- cutree(hc, 10)
 
-plot(hc, main = "Hierarchical clustering of 100 COVID abstracts",
+plot(hc, main = "Hierarchical clustering of 200 news articles",
      ylab = "", xlab = "", yaxt = "n")
 
 rect.hclust(hc, 10, border = "red")
@@ -99,6 +92,8 @@ rect.hclust(hc, 10, border = "red")
 
 
 ```{r warning=FALSE, message=FALSE}
+
+library(kableExtra)
 
 p_words <- colSums(dtm) / sum(dtm)
 
@@ -122,7 +117,8 @@ cluster_summary <- data.frame(cluster = unique(clustering),
                               }),
                               stringsAsFactors = FALSE)
 
-cluster_summary
+kable(cluster_summary, format = "html")%>%
+  kable_styling("striped")
 
 ```
 
@@ -136,7 +132,7 @@ wordcloud::wordcloud(words = names(cluster_words[[ 5 ]]),
                      max.words = 50, 
                      random.order = FALSE, 
                      colors = c("red", "yellow", "blue"),
-                     main = "Top words in cluster 100")
+                     main = "Top words")
 
 ```
 

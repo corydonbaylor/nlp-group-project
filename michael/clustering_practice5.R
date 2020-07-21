@@ -77,3 +77,4 @@ wordcloud::wordcloud(words = names(cluster_words[[ 5 ]]),
                      random.order = FALSE, 
                      colors = c("red", "yellow", "blue"),
                      main = "Top words in cluster 100")
+
