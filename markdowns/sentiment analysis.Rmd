@@ -238,3 +238,80 @@ ggplot(data = sentbars) +
 
 
 ```
+
+## Valence Shifters
+
+How would the above strategies work with a sentence like "I am not happy". Well if we are assigning a sentiment on the word level, we will get a positive score for the word "happy" and as a result, the sentence will be rated as positive, even when this is clearly not the case. 
+
+Enter valence shifters. 
+
+While this term may sound like its out of Startrek, the concept is actually quite simple. Certain words like "not" or "very" serve to modify different words. In your 4th grade english class, these would be called adverbs or adjectives, but in data science, we call these valence shifters. 
+
+Some valence shifters are negators (no, not), some are amplifiers (very, extremely), and some are deamplifiers (hardly, rarely).
+
+### Sentimentr
+
+The `sentimentr` package allows us to handle these complex sentence structures. This package scores sentiment by looking at the totality of the observation rather than individual words, so you will not need to tokenize by word.
+
+There are two main function in `sentimentr`: `sentiment()` and `sentiment_by()`. Let's see how they work:
+
+```{r}
+library(sentimentr)
+
+sentimentr::sentiment("I am barely happy. In fact, I am very sad")%>%
+  kable()%>%
+  kable_styling("striped")
+
+sentimentr::sentiment_by("I am barely happy. In fact, I am very sad")%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+`sentiment()` takes a text string, breaks it up into sentences, and then scores those sentences. Whereas, `sentiment_by()` scores the text string as a whole by averaging the two sentence's scores together. 
+
+Because `sentiment_by()` has a one to one relationship with its input, it can potentially be used in a tidy framework, like so:
+
+```{r}
+
+sample = data.frame(
+  text = c(
+    "I am so happy",
+    "I am not very happy",
+    "I am unhappy",
+    "I very unhappy",
+    "I am sad",
+    "I am lots of things, happy, unhappy, I contain multitudes"
+    ), 
+  linenumber = seq(1:6)
+)
+
+sample%>%
+  mutate(sentimentr_score = sentiment_by(text)$ave_sentiment)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+Now that we understand how this function operates, lets compare it to our previous strategy of using the "afinn" dictionary and the `tidytext` methodology:
+
+```{r}
+
+sample%>%
+  unnest_tokens(word, text)%>% # this unnests the tweets into words
+  anti_join(stop_words)%>% #removes common words (stop words)
+  left_join(get_sentiments("afinn"))%>% # uses afinn to dictionary for scores
+  group_by(linenumber)%>% # takes it back up to the line number level
+  summarise(afinn_score = mean(value, na.rm = T))%>% # summarises by score
+  right_join(sample)%>% # joins back to sample to get the full sentence
+  # adds sentiment scoring via sentimentr
+  mutate(sentimentr_score = sentiment_by(text)$ave_sentiment)%>%
+  select(text, afinn_score, sentimentr_score)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+Comparing the two, we can see that `sentimentr` was able to catch the negation in "I am not very happy" and the distinction between "I am unhappy" and "I am very unhappy" (as a sidenote, I am perfectly happy but am not creative enough for better example sentences). So considering this, why would we ever use `tidytext`?
+
+In general, the `tidytext` method is much easier to understand and communicate. Do not underestimate how important it is for a client to understand how your model works and why a given observation was labled a particular way. While `sentimentr` relies on a [complex algorithm](https://cran.r-project.org/web/packages/sentimentr/readme/README.html) to assign a score. When choosing between `tidytext` and `sentimentr`, it will often boil down to the task, and if a easy to explain model, with some inherent limitations, is sufficient.   
