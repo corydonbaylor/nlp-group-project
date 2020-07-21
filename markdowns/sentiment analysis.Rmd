@@ -19,7 +19,9 @@ library(kableExtra)
 
 Sentiment analysis is the classification and analysis of the emotional intent in text data. Some approaches include classifying words as positive or negative, assigning words to a specific emotion (like surprise), or calculating a sentiment score in the form of a number. 
 
-This branch of NLP is often applied in consumer feedback and social media, and like all forms of data science is best used when the volume of data cannot be manually reviewed. If a company receives 50,000 pieces of user feedback, there needs to be a time efficient way of classifying them as positive or negative, and sentiment analysis is often used to fill this niche.   
+This branch of NLP is often applied in consumer feedback and social media, and like all forms of data science is best used when the volume of data cannot be manually reviewed. If a company receives 50,000 pieces of user feedback, there needs to be a time efficient way of classifying them as positive or negative, and sentiment analysis is often used to fill this niche.
+
+In this lesson, we will be using the `tidytext` package to perform sentiment analysis. This package allows us to work within the `tidyverse` and is compatible with other tidy packages such as `tidyr` and `dplyr`.
 
 ### Lexicons
 
@@ -60,7 +62,7 @@ get_sentiments("nrc")%>%
 
 ```
 
-In the tidytext universe of sentiment analysis, the basic workflow for sentiment analysis will be to (1) remove stop words, (2) join on sentiments, and (3) prepare for presentation. Let's walk through a few examples of this. 
+In the `tidytext` universe of sentiment analysis, the basic workflow for sentiment analysis will be to (1) remove stop words, (2) join on sentiments, and (3) prepare for presentation. Let's walk through a few examples of this. 
 
 ## Sentiment Analysis on Tweets
 
@@ -152,7 +154,7 @@ nrc_sentiment = text%>% #this allows us to retain the row number/the tweet
 
 ```
 
-The `radarchart()` function accepts a dataframe where each column is a pole in the radar chart. Additionally, it requires a row reprsenting the minimum and a row representing the maxiumum of the chart.  
+The `radarchart()` function accepts a dataframe where each column is a pole in the radar chart. Additionally, it requires a row representing the minimum and a row representing the maxiumum of the chart.  
 
 ```{r warning=FALSE, message=FALSE}
 
