@@ -163,7 +163,7 @@ films = c("Batman+Begins", "The+Incredibles", "The+Godfather", "Parasite")
  
 for(i in 1:length(films)){
 
-  data = fromJSON(paste0("http://omdbapi.com/?apikey=", key,"&t=", films[i]))
+  data = fromJSON(paste0("http://omdbapi.com/?apikey=", omdbkey,"&t=", films[i]))
   
   titles = append(titles, data$Title)
   years = append(years, data$Year)
@@ -189,4 +189,7 @@ kable(head(film_df), format = "html")%>%
 ## Conclusion
 APIs are designed to be a stable way for scripts, programs, and applications to interact with each other. In general, if you are text mining, you will just need to `GET` requests from an API as you are hoping to *get* data. 
 
-Since most data in APIs comes in the form of JSON files, we went over the `fromJSON()` function in `jsonlite`. However, R can do every kind of request using the `httr` package. 
+Since most data in APIs comes in the form of JSON files, we went over the `fromJSON()` function in `jsonlite`. 
+
+<br>
+<br>
