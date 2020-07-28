@@ -1,4 +1,5 @@
 ---
+
 title: "Introduction to Web Scraping in R"
 author: "Team Hanley NLP Working Group"
 output: 
@@ -62,7 +63,8 @@ In this case, we are using an **xpath** to pull out the table. Because we are lo
 
 For our example, go to the Wikipedia page and inspect the 2016 Summer Olympics medal table. Next, look for a `<table>` tag. Right click this and go to **Copy XPath**. You should get the same value as you see in the `html_node()` below. 
 
-After that, it's smooth sailing. You have a table, so pipe it into the `html_table()` function and set `fill = TRUE`. I used the `kableExtra` package to make this look nicer for this markdown, but that's not necessary for web scraping.  Your results should look something like the table below.
+After that, it's smooth sailing. You have a table, so pipe it into the `html_table()` function and set `fill = TRUE`. I used the `kableExtra` package to make this look nicer for this tutorial, but that's not necessary for web scraping.  Your results should look something like the table below.
+
 
 ```{r, message=F, warning=F}
 library(kableExtra) # this is just to make the tables look nice
@@ -228,7 +230,7 @@ substr(transcript, markers$end[1]+1, markers$start[2]-1)
 
 **Step 3: Loop through Each Speaker to Assemble a Dataframe**
 
-The goal of this step is to return each speaker and what they said in a dataframe, all in the order in which they said it. 
+The goal of this step is to return each speaker's name and what they said in a dataframe, all in the order in which they said it. 
 
 We can use a loop to do this. Using the indexing technique described above, for each row number, we will return the name and comment into a one row dataframe. As you may expect, each time the for loop iterates, the row will be overwritten. 
 
