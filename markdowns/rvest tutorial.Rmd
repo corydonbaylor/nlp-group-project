@@ -1,5 +1,6 @@
 ---
-title: "Introduction to Webscraping in R"
+
+title: "Introduction to Web Scraping in R"
 author: "Team Hanley NLP Working Group"
 output: 
   html_document:
@@ -13,17 +14,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## What is rvest
 
-For the uninitiated, webscraping is how to pull data down from a website and clean it so that it can be used for analysis, and `rvest` is the primary package used for webscraping in R.  
+For the uninitiated, web scraping is how to pull data down from a website and clean it so that it can be used for analysis, and `rvest` is the primary package used for web scraping in R.  
 
 From [the rstudio blog](https://blog.rstudio.com/2014/11/24/rvest-easy-web-scraping-with-r/):
 
 >"rvest is new package that makes it easy to scrape (or harvest) data from html web pages, inspired by libraries like beautiful soup. It is designed to work with magrittr so that you can express complex operations as elegant pipelines composed of simple, easily understood pieces."
 
-Even though we are elite hackers, we will only have access to the same information that is publically available for everyone. To get a better sense of what we have access to, go to any webpage, right-click and select **"Inspect"**. You will see a bunch of html tags. This is what is available to us for scraping. 
+Even though we are elite hackers, we will only have access to the same information that is publicly available for everyone. To get a better sense of what we have access to, go to any webpage, right-click, and select **"Inspect"**. You will see a bunch of html tags. This is what is available to us for scraping. 
 
-Before we get into examples, lets go over how `rvest` works at its most basic level:
+Before we get into examples, let's go over how `rvest` works at its most basic level:
 
-## Webscraping Basics in rvest
+## Web Scraping Basics in rvest
 
 First, how do we get a webpage all the way from the internet onto our local computers? As you can guess by the name, the `read_html()` function will do this for us. Simply enter the name of the page you would like to scrape (in quotes) and put it in the function.  
 
@@ -33,11 +34,11 @@ library(rvest)
 read_html("https://en.wikipedia.org/wiki/2016_Summer_Olympics_medal_table")
 ```
 
-This returns an **html object**, and while this technically contains all the information we need, it doesn't really help us. Luckily, `rvest` comes with simple to use helper functions that will let us get this webpage into the right format. 
+This returns an **html object**, and while this technically contains all the information we need, it doesn't really help us. Luckily, `rvest` comes with simple-to-use helper functions that will let us get this webpage into the right format. 
 
 ### Finding a Page Element 
 
-But before we go over how to use rvest's helper functions, we need to go over how to find a particular element on a page. This will be done with the **"Inspect"** option in chrome. 
+But before we go over how to use rvest's helper functions, we need to go over how to find a particular element on a page. This will be done with the **"Inspect"** option in Chrome. 
 
 If you are looking to pull back multiple page elements you will need to find the **CSS Class** that applies to those elements, and if you are looking to pull back a single element, you will need its **xpath**.
 
@@ -45,8 +46,8 @@ You may be thinking, what is an **xpath**? An xpath is a path to a particular we
 
 * Find the element that you want on a webpage
 * Inspect it and look for its tag in the html console
-* Right click on its tag and go to "Copy" -> "Copy XPath". 
-* Paste it into `html_node()`.  
+* Right click on its tag and go to "Copy" -> "Copy XPath" 
+* Paste it into `html_node()`  
 
 Or as seen on TV:
 
@@ -58,11 +59,12 @@ Finding the CSS class is even easier. For the web element that you are looking t
 
 Once you have pulled down the html and know the CSS Class or xpath that you want to use, you can retrieve it/them using `html_nodes()` or `html_node()`.
 
-In this case, we are using an **xpath** to pull out the table. Because we looking for *one* thing, use `html_node()` rather than `html_nodes()`, which will return elements back in a list. 
+In this case, we are using an **xpath** to pull out the table. Because we are looking for *one* thing, use `html_node()` rather than `html_nodes()`, which will return elements back in a list. 
 
-For our example, go to the wikipedia page and inspect the 2016 Summer Olympics medal table. Next, look for a `<table>` tag. Right click this and go to **Copy XPath**. You should get the same value as you see in the `html_node()` below. 
+For our example, go to the Wikipedia page and inspect the 2016 Summer Olympics medal table. Next, look for a `<table>` tag. Right click this and go to **Copy XPath**. You should get the same value as you see in the `html_node()` below. 
 
-After that, it's smooth sailing. You have a table, so pipe it into the `html_table()` function and set `fill = TRUE`. I used the `kableExtra` package to make this look nicer for this tutorial, but that's not neccessary for webscraping.  Your results should look something like the below table.
+After that, it's smooth sailing. You have a table, so pipe it into the `html_table()` function and set `fill = TRUE`. I used the `kableExtra` package to make this look nicer for this tutorial, but that's not necessary for web scraping.  Your results should look something like the table below.
+
 
 ```{r, message=F, warning=F}
 library(kableExtra) # this is just to make the tables look nice
@@ -97,7 +99,7 @@ titles = read_html(url)%>%
 titles[1:2]
 ```
 
-As you can see this returned a list of html tags. While this could be useful, what we are really interested in is the text within them. As previously mentioned, we can use `html_text()` to extract this. 
+As you can see, this returned a list of html tags. While this could be useful, what we are really interested in is the text within them. As previously mentioned, we can use `html_text()` to extract this. 
 
 ```{r, message=F, warning=F}
 
@@ -164,7 +166,7 @@ kable(head(movies), format = "html")%>%
 
 ### Problem
 
-This problem is admittedly much more difficult and will test your ability to work with text data as much, if not more, than your ability to webscrape. 
+This problem is admittedly much more difficult and will test your ability to work with text data as much, if not more, than your ability to web scrape. 
 
 The following link contains the transcript of the first presidential debate between Hiliary Clinton and Donald Trump. Build a table that contains both the speaker and what was said.
 
@@ -172,11 +174,11 @@ While there is probably multiple ways to tackle this, I am going to show you how
 
 **Hints**
 
-* First, you will return a giant block of text. You will need to use `str_locate_all()` to return the **locations** of the speakers (Holt, Clinton and Trump)
-* Using these locations, you can then extract the correct text
-* You will need to use a for-loop to assemble the whole thing into a dataframe. 
+* First, you will return a giant block of text. You will need to use `str_locate_all()` to return the **locations** of the speakers (Holt, Clinton, and Trump).
+* Using these locations, you can then extract the correct text.
+* You will need to use a for loop to assemble the whole thing into a dataframe. 
 
-As this is a considerably more complicated example, we will have a step by step walk through of how to solve it in the solution tab.
+As this is a considerably more complicated example, we will have a step by step walkthrough of how to solve it in the solution tab.
 
 ### Solution
 
@@ -209,11 +211,11 @@ head(markers)
 
 **Step 2: Extract the Name and Responses by Location**
 
-Now that we have the start and end position of each matched speaker in a dataframe. We can retun their names and what they said using the row numbers of the data frame we created. 
+Now that we have the start and end position of each matched speaker in a dataframe, we can retun their names and what they said using the row numbers of the dataframe we created. 
 
 For example, `markers$start[1]` will return the first value in the start variable in the markers dataframe, which is 251 or H for HOLT. `markers$end[1]` will return the position 254, which is the T in HOLT. 
 
-To get what each speaker said, we will need the first character **past** the speakers name or `markers$end[1] + 1` and the last character **before** for the next speakers name or `markers$start[2] - 1`. 
+To get what each speaker said, we will need the first character **past** the speaker's name or `markers$end[1] + 1` and the last character **before** for the next speakers name or `markers$start[2] - 1`. 
 
 ```{r, warning = F, message= F}
 # how we can locate a name
@@ -232,7 +234,7 @@ The goal of this step is to return each speaker's name and what they said in a d
 
 We can use a loop to do this. Using the indexing technique described above, for each row number, we will return the name and comment into a one row dataframe. As you may expect, each time the for loop iterates, the row will be overwritten. 
 
-To get around this, we will initiate a dataframe outside of the for loop and then append the rows to that datafame each time that we loop through. 
+To get around this, we will initiate a dataframe outside of the for loop and then append the rows to that datafame each time we loop through. 
 ```{r, warning=F, message=F}
 
 # initiate data frame outside of loop
@@ -262,12 +264,12 @@ kable(head(answers, n = 3), format = "html")%>%
 
 ## Conclusion
 
-And there you go! That's a mild introduction to how to webscrape with R. We went over how to find the correct **xpath** or **CSS Class** to isolate what data we would like to pull back. 
+And there you go! That's a mild introduction to how to web scrape with R. We went over how to find the correct **xpath** or **CSS Class** to isolate what data we would like to pull back. 
 
-The `html_node()` and `html_table()` can be used to pull back a clean html table into R.
+`html_node()` and `html_table()` can be used to pull back a clean html table into R.
 
-The `html_nodes()` and `html_text()` can be used to pull back a character vector. Using `data.frame()`, we can assemble a dataframe out of the different vectors we pull back.
+`html_nodes()` and `html_text()` can be used to pull back a character vector. Using `data.frame()`, we can assemble a dataframe out of the different vectors we pull back.
 
 Finally, working with unstructured text can be tough, but through the `stringr` package, we can clean and provide structure, putting this data into a dataframe. This will allow us to perform NLP more easily later. 
 
-**One thing to note:** webpages are constantly changing and are being reworked, and web scraping is a brute force approach to retreiving data from the web. APIs tend to be more static and should be the first approach for getting data from the web. 
+**One thing to note:** webpages are constantly changing and are being reworked, and web scraping is a brute force approach to retrieving data from the web. APIs tend to be more static and should be the first approach for getting data from the web. 

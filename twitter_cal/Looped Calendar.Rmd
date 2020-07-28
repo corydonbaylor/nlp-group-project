@@ -1,0 +1,182 @@
+---
+title: "Sentiment Calendar"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(tidytext)
+library(kableExtra)
+library(forcats)
+
+```
+
+How has your April been? If you are like most Americans you have mostly spent it at home watching the news, and for the most part the news has not been great. 
+
+Sentiment analysis can provide an objective measure to how good or bad the news has been over the course of the past month. But this, of course, raises the question of what exactly is *the news*. 
+
+While, as you can expect, we are unable to capture the entire universe of news articles in digestable chunks, we can get a somewhat representative sample of the news by pulling tens of thousands of tweets from major news outlets. You can find a tutorial on how to pull tweets [here](https://nlp-working-group.netlify.app/nlp/twitter-tutorial.html). 
+
+We are going to start this tutorial under the assumption that you have pulled the needed tweets from whatever news organizations that you want to include. Once you have your data save it in a folder called "data" within your project. 
+
+## Setting Up Your Workspace
+
+First we need a way to load in and work with the data that we just pulled. For our analysis we loaded in 23 different organizations, which obviously would be too many to work with individually, so we will use a for loop. 
+
+When pulling the data, I did not name each data frame the same as I named each file. As such, we will need to create a vector of both all the files that we want to load in and the names of the data frames as they are read in. 
+
+```{r, warning= FALSE, message=FALSE}
+# create a list of files to pull in
+files = list.files("data/")
+# initiate a vector of data frame names
+names = c()
+
+# load all the files in and create a vector of their names
+for(i in 1:length(files)){
+  load(paste0("data/", files[i]))
+  temp = load(paste0("data/",files[i]))
+  names = append(names, temp)
+}
+
+# lets remove trump as a news agency
+names = names[names != "trump"]
+```
+
+We also pulled the president's tweets, but since he is not a news agency we won't include him to start. 
+
+## Preparing the Data
+
+We are going to use the method from [this tutorial](https://corydonbaylor.github.io/visualizations/twitter_viz.html) to build a visualization showing how positive or negative the news was per day. Essentially what we will be doing is creating a heatmap calendar, with each day's square being more green or more red based on how positive or negative the news was that day.
+
+Our end goal will be to have one dataframe with each row representing one day for each news organization. So for example, if we only had two new organizations, we would have a dataframe with 60 rows.  
+
+```{r warning = FALSE, message=FALSE}
+# create a monthly df for each df loaded in
+
+all = data.frame()
+
+for(i in 1:length(names)){
+  df = get(names[i])
+  
+  text = df%>%select(text, created_at, followers_count, screen_name)%>%
+    mutate(
+      text = gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", df$text),
+      linenumber = row_number())
+  
+  sent = text%>% #this allows us to retain the row number/the tweet
+    unnest_tokens(word, text)%>% # this unnests the tweets into words
+    anti_join(stop_words)%>% #removes common words (stop words)
+    left_join(get_sentiments("afinn")) %>% # gets sentiment score based on afinn dictionary
+    mutate(value = ifelse(is.na(value), 0 , value))%>%
+    group_by(linenumber) %>% 
+    summarise(sentiment = sum(value, na.rm = T)) %>% # sums up the sentment to the tweet level 
+    right_join(., text, by = "linenumber")%>% # joins back to the original dataset with the sentiment score
+    mutate(date = substr(created_at, 1,10)) # cleans up created_at var
+  
+  month = sent%>%group_by(date)%>%
+    summarise(sentiment = mean(sentiment, na.rm =T))%>%
+    # to create the plot we need to be able to organzie with days as the columns and week number as the rows
+    mutate(followers_count = text$followers_count[1],
+           screen_name = text$screen_name[1]
+    )
+  
+  all = rbind(all, month)
+}
+
+all%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling()
+  
+```
+
+## Condensing the Dataframe
+
+Next we need to condense our dataframe so there are only 30 rows in the dataset, one for each day. In order to do this, we will need to take a weighted average of each news organization. The idea here being that CNN's tweets reach more people than The Hill's and thus have a greater impact on the public's perception of the news. 
+
+After we condense it down to just 30 rows, we will need to add some helper variables, so that ggplot can neatly organize the data into a calendar. We will need to know what day of the week a given day is and which week that day fell into that year. 
+
+```{r warning = FALSE, message=FALSE}
+
+final = all%>%
+  mutate(date = ymd(date))%>%
+  filter(date >= "2020-04-01", 
+         date <= "2020-04-30")%>%
+  group_by(date)%>%
+  summarise(weighted = weighted.mean(sentiment, followers_count))%>%
+  mutate(weekday =  
+           
+           factor(wday(date), labels = c("Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"))
+  )%>% # this gives us an order factor variable for days
+  mutate(day = day(date))%>% # we will use this to write in the date on the squares
+  mutate(weeknum = isoweek(date))%>% # what number week it is--allows us to group days into weeks
+  mutate(weeknum = ifelse(weekday == "Sun", weeknum +1, weeknum))%>% # iso says that monday is the first day of the week but we want sunday to be the first day
+  mutate(weeknum = factor(weeknum, rev(unique(weeknum)), ordered = T))
+
+final%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling()
+
+```
+
+## Creating the Plot
+
+Finally, now that we have the data properly organized, we can build out the actual plot. We will be using the `geom_tile()` function to build 4 to 5 rows of equally sized squares that will be meant to mimic the look of a calendar. The x axis will be the day of the week, and the y axis will be week number (ie how many weeks have passed in the year). We are going to fill in each day with the weighted sentiment score. 
+
+```{r warning = FALSE, message=FALSE}
+
+ggplot(final, aes(x= weekday, y =weeknum, fill = weighted))+ 
+  geom_tile(color = "#323232")+ # makes the lines a bit more muted
+  geom_text(label = final$day, size =4, color = "black")+ # days
+  # positive days should be green and negative ones should be red
+  scale_fill_gradient2(midpoint = 0, low = "#d2222d", mid = "white", high = "#238823")+ 
+  # we are going to remove the majority of the plot 
+  theme(axis.title = element_blank(),
+        panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_blank(),
+        legend.text = element_blank(),
+        legend.position = "none",
+        plot.title = element_text(face = "bold"),
+        plot.caption = element_text(color = "#323232")
+  )+
+  labs(title = "This April in Tweets", 
+       subtitle = "A Sentiment Analysis of News Tweets",
+       caption = "Darker Green = More Positive\nDarker Red = More Negative")
+
+
+```
+
+## The Bipartisanship of Negativity
+
+So now that we have created a calendar that incorporates all of the news agencies, we should take a step back and see how positive or negative each individual news agency was on average. 
+
+```{r warning = FALSE, message=FALSE}
+
+rankings = all %>%
+  group_by(screen_name)%>%
+  summarise(score = mean(sentiment))%>%
+  arrange(desc(score))%>%
+  mutate(screen_name2 = fct_reorder(screen_name, score, max, .desc = F
+                         ))
+
+
+ggplot(data = rankings)+
+  geom_bar(aes(x = screen_name2, y = score), stat = "identity", fill = "#8b1700")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(x = "News Organization", y = "Sentiment Score")
+
+
+```
+
+An obvious observation is that every single organization had a negative average score each day. 
