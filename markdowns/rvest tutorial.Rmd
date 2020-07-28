@@ -1,5 +1,5 @@
 ---
-title: "Introduction to Webscrapping in R"
+title: "Introduction to Webscraping in R"
 author: "Team Hanley NLP Working Group"
 output: 
   html_document:
@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## What is rvest
 
-For the unintiated, webscrapping is how t0 pull data down from a website and clean it so that it can be used for analysis, and `rvest` is the primary package used for webscraping in R.  
+For the uninitiated, webscraping is how to pull data down from a website and clean it so that it can be used for analysis, and `rvest` is the primary package used for webscraping in R.  
 
 From [the rstudio blog](https://blog.rstudio.com/2014/11/24/rvest-easy-web-scraping-with-r/):
 
@@ -25,7 +25,7 @@ Before we get into examples, lets go over how `rvest` works at its most basic le
 
 ## Webscraping Basics in rvest
 
-First, how do we get a webpage all the way from the internet onto our local computers. As you can guess by the name, the `read_html()` function will do this for us. Simply enter the name of the page you would like to scrape (in quotes) and put it in the function.  
+First, how do we get a webpage all the way from the internet onto our local computers? As you can guess by the name, the `read_html()` function will do this for us. Simply enter the name of the page you would like to scrape (in quotes) and put it in the function.  
 
 ### read_html or Getting the HTML
 ```{r, message=F, warning=F}
@@ -62,7 +62,7 @@ In this case, we are using an **xpath** to pull out the table. Because we lookin
 
 For our example, go to the wikipedia page and inspect the 2016 Summer Olympics medal table. Next, look for a `<table>` tag. Right click this and go to **Copy XPath**. You should get the same value as you see in the `html_node()` below. 
 
-After that, its smooth sailing. You have a table, so pipe it into the `html_table()` function and set `fill = TRUE`. I used the `kableExtra` package to make this look nicer for this markdown, but thats not neccessary for webscraping.  Your results should look something like the below table.
+After that, it's smooth sailing. You have a table, so pipe it into the `html_table()` function and set `fill = TRUE`. I used the `kableExtra` package to make this look nicer for this tutorial, but that's not neccessary for webscraping.  Your results should look something like the below table.
 
 ```{r, message=F, warning=F}
 library(kableExtra) # this is just to make the tables look nice
@@ -84,7 +84,7 @@ kable(head(medal_tally), format = "html")%>%
 
 So what if the data you are looking to pull back isn't already in a table. What if you want to create a table from information on the webpage? In that case, `html_table()` won't work. Instead, you will have to assemble the table yourself. 
 
-Enter, `html_text()`. This function extracts the text from inside a tag. Let's look at a quick example. First, without `html_text` then with it. 
+Enter, `html_text()`. This function extracts the text from inside a tag. Let's look at a quick example. First, without `html_text`, then with it. 
 
 ```{r, message=F, warning=F}
 
@@ -228,7 +228,7 @@ substr(transcript, markers$end[1]+1, markers$start[2]-1)
 
 **Step 3: Loop through Each Speaker to Assemble a Dataframe**
 
-The goal of this step is return the each speaker and what they said in a dataframe, all in the order in which they said it. 
+The goal of this step is to return each speaker's name and what they said in a dataframe, all in the order in which they said it. 
 
 We can use a loop to do this. Using the indexing technique described above, for each row number, we will return the name and comment into a one row dataframe. As you may expect, each time the for loop iterates, the row will be overwritten. 
 
