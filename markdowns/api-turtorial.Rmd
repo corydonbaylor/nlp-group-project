@@ -18,7 +18,7 @@ API stands for Application Program Interface, which may sound complicated, but a
 
 But before we go over RESTful APIs in particular, we need to define what makes an API an API. Prepare yourself for some jargon. 
 
-- **Client**: a client is the program or person who is using the API. So if you made a shiny app that used an API, than your shiny app would be the client. If you built a script then you or that script would be the client. 
+- **Client**: a client is the program or person who is using the API. So if you made a shiny app that used an API, then your shiny app would be the client. If you built a script, then you or that script would be the client. 
 - **Resource**: this is the information you are trying to pull back with your API. In our example below, you will be pulling back information on Pokemon, so the pokemon is the resource. Keep in mind that each resource will have a unique identifier. 
 
 So using the technical language we have learned above, we can think of an API as a way for a **client** to pull **resources** from a server.
