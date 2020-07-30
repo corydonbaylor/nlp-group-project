@@ -123,7 +123,7 @@ meta%>%
 
 Where the term frequncy shows how common a word is the inverse document frequncy discounts words for being common across documents. 
 
-Mathmatically, the IDF (inverse document frequency) of a word in a collection of documents can be understood as:
+Mathematically, the IDF (inverse document frequency) of a word in a collection of documents can be understood as:
 
 idf(word) = ln(total number of documents / number of documents containing word)
 
@@ -164,3 +164,6 @@ From this, we could make some guesses as to what the chapters in this book are a
 The only way to know for sure would be to read the book, but this is of course more time efficient. 
 
 (You should still read the book -- it's quite good!)
+
+<br>
+<br>
