@@ -12,18 +12,24 @@ twitter_token <- create_token(
 )
 
 # load in any dataset that you want to update
-setwd("C:/Users/cwb2w/OneDrive/Documents/github/nlp-group-project/twitter_cal")
-load("data/breitbart.Rdata")
-data = news 
+setwd("/Users/corydonbaylor/Documents/github/nlp-group-project/twitter_cal/")
+load("data/WSJ.Rdata")
+news = WSJ
+
+# how far back do we go?
+print(range(news$created_at))
+
+# double check the screenname 
+screen_name = news$screen_name[1]
 
 # find id of the latest tweet in that dataset
-var = max(data$status_id)
+var = max(news$status_id)
 
 # using the "since_id" parameter pull back the new tweets
-new = get_timeline("breitbartnews", n= 3000, since_id = var)
+new = get_timeline(screen_name, n= 3000, since_id = var)
 
 # bind this to the old tweets
-breitbart = rbind(new, news)
+wsj = rbind(new, news)
 
 # update the file
-save(breitbart, file = "data/breitbart.Rdata")
+save(wsj, file = paste0("data/", screen_name, ".Rdata"))

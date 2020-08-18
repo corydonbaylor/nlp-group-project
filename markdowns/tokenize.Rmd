@@ -73,7 +73,7 @@ bigrams%>%
 ## Removing Stop Words
 Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
 
-For humans, more words are needed but for NLP they add nothing. Let's look at that last sentence for example.
+For humans, more words are needed, but for NLP they add nothing. Let's look at that last word for example.
 
 >For humans, more words are needed but for NLP they add nothing.
 
@@ -86,7 +86,7 @@ As you can see, computer really only need cave man speak to get the semantic mea
 ### How do we know if something is a stop word?
 As you might guess, what exactly constitutes a stop word is somewhat subjective. When thinking about defining a stop word, we need to think about generalities and scale. For example, "no" can be a really important word semantically, and for certain tasks, like sentiment analysis, [you may want to keep certain stop words](https://medium.com/@limavallantin/why-is-removing-stop-words-not-always-a-good-idea-c8d35bd77214), especially words like "no" or "not". Handling these words is called [negation handling](https://towardsdatascience.com/sentiment-analysis-in-r-good-vs-not-good-handling-negations-2404ec9ff2ae). But we will get into that when we cover sentiment analysis.   
 
-Lets use our bigram example from before. We are going to be basing our methodogly for removing stop words off of [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). Its pretty simple and somewhat scalable.
+Let's use our bigram example from before. We are going to be basing our methodology for removing stop words on [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). It's pretty simple and somewhat scalable.
 
 First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
 
@@ -126,7 +126,7 @@ And there you have it! A clean dataframe of bigrams without stop words the `tidy
 
 ## Counting n-grams
 
-While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Let's look at the bigram frequency of the *Metamorphosis* with and without removing stop words:
+While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Let's look at the bigram frequency of *Metamorphosis* with and without removing stop words:
 
 **With Stop Words**
 ```{r, warning=FALSE, message=F}
@@ -148,7 +148,8 @@ bigrams_united%>%
   kable_styling("striped")
 ```
 
-So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would "of the" as one of the top bigrams in nearly any book or paper. 
+
+So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would see "of the" as one of the top bigrams in nearly any book or paper. 
 
 Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
 
@@ -157,7 +158,7 @@ Once we remove the stop words, we begin to generate content that is specific to 
 
 Overall, this tutorial is simply meant to acquaint you with the basic premises of preparing text data for analysis, specifically in the tidytext universe. 
 
-Now, try and repeat the above steps for "Heart of Darknes" by Joseph Conrad. But this time, lets use trigrams instead of bigrams. **The Gutenberg id is 219**.
+Now, try to repeat the above steps for "Heart of Darkness" by Joseph Conrad. But this time, let's use trigrams instead of bigrams. **The Gutenberg id is 219**.
 
 ### Problem
 

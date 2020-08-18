@@ -1,0 +1,249 @@
+---
+title: "Regex Explained"
+output: html_document
+---
+
+A (very) important part of natural language processing is searching for patterns of characters. While this may seem like a somewhat boring part of the process, it is usually the first task in cleaning and preparing data for natural language processing. 
+
+In this tutorial, we will go through how regex is used in R and specifically in the `tidyverse` via the `stringr` package. 
+
+## Pattern Matching with Stringr
+
+`stringr` is the tidyverse solution to working with strings. That means that it plugs in well with packages like `tidytext`, `dplyr` and `tidyr`.
+
+Some stringr functions will return a single vector, which can be turned into a variable using a `mutate` function from the `dplyr` package. In my opinion, these are the most useful functions in `stringr`. They do things like return if a pattern exists, return a pattern itself, or replace a pattern with something new. While `stringr` has more functions, which you can learn more about [here](https://stringr.tidyverse.org), the below four functions make up the backbone of the package. s  
+
+* `str_detect(string, pattern)` detects the presence or absence of a pattern in a string. It will return a TRUE FALSE based on if that pattern is found.
+* `str_extract(string, pattern)` extracts text corresponding to the matched pattern
+* `str_match(string, pattern)` match text according to a pattern and returns it. Functionally, it is often the same as `str_extract()` but must be used instead of `str_extract()` in specialized instances. 
+* `str_replace(string, pattern, replacement)` replaces a matched pattern and returns a character vector.
+
+**These functions all have a variant with an `_all` suffix, which will match all occurrences of a pattern in a string. Without this only the first pattern will be matched**
+
+Lets see how these functions compare when working with data. First we will create a data.frame with a text variable with some sample text.
+
+```{r warning=FALSE, message=FALSE}
+
+library(dplyr)
+library(stringr)
+library(kableExtra)
+
+sample = data.frame(text = c("this is some sample text",
+                    "it is comprised of ample text",
+                    "I hope it will help",
+                    "if not, than 'oh welp.'",
+                    "text only and we in heaven,",
+                    "but life is hard so 567."
+                    ))
+
+kable(sample)%>%
+  kable_styling("striped")
+```
+
+Now lets test out `str_detect`, `str_extract`, and `str_replace` with a pattern of "if".
+
+```{r warning=FALSE, message=FALSE}
+
+sample%>%
+  mutate(detect = str_detect(text, "if"),
+         extract = str_extract(text, "if"),
+         replace = str_replace(text, "if", "IF"))%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+
+You will notice that each one of these operations matched the "if" in "life". You can put spaces around the if to avoid this like so " if ".
+
+### The _all suffix
+
+We mentioned earlier that by appending `_all` we will match all instances of the patterns. Let's take a look at what that means in pratice. 
+
+```{r}
+all = c("I am repetitive and repetitive")
+
+str_extract_all(all, "repetitive")
+```
+
+Unfortunately, this returns a list of the extracted patterns, so it will be a little difficult to work with this inside a dataframe. This is because you are returning multiple things into what in a dataframe would be a single observation. In other words, the string you are inputting into the function has a length of one, but the number of patterns you can return, in this case two, will oftentimes be greater than one. Thus the function returns a list.  
+
+However, if you are looking to replace all matched patterns within a string, what you return will just be the edited string. And thus, `str_replace_all()` will be tidyverse compatible.  
+
+```{r}
+all = c("I am repetitive and repetitive")
+
+str_replace_all(all, "repetitive", "very repetitive")
+```
+## Basic Pattern Matching in Regex
+
+We have gone over how the three main functions of stringr works with basic patterns. Above in we were working with literal patterns, meaning that if we told `str_replace()` to replace a pattern of "xyz", it would look for the "xyz" characters and replace them. However, regex can do much more than that. Learning the material in this section will likely serve you well enough to complete most data munging tasks with text.  
+
+### Metacharacters in Regex
+
+The power of regex comes from using special characters or combinations of characters to mean something different than their literal meaning. For example, a period typically signifies the end of a sentence, but in regex, it serves as a stand in for any character. 
+
+Let's see go over four of these special characters in regex. Look at the comment for how the metacharacter works.
+
+```{r warning=FALSE, message=FALSE}
+
+sample%>%
+  mutate(period = str_extract(text, "."), # . stands for anything. It will return the first character
+         character = str_extract(text, "\\w"), # \\w stands for any character
+         digit = str_extract(text, "\\d"), # \\d stands for any digit
+         white_space = str_extract(text, "\\s"))%>% # \\ stands for any whitespace
+  kable()%>%
+  kable_styling("striped")
+  
+
+```
+
+### Escaping Special Characters
+
+This naturally leads to the question of how do you match a period. You use the escape character which is a backward slash `\`. This will tell regex to interpret the next character as a "literal". In R, you have to double escape or write: `\\`.
+
+```{r warning=FALSE, message=FALSE}
+
+sample%>%
+  mutate(detect = str_detect(text, "\\."),
+         extract = str_extract(text, "\\."),
+         replace = str_replace(text, "\\.", " :D"))%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+### Anchors
+
+Oftentimes, where the pattern is in the string will matter. Using the `^` will only match the pattern if it is at the *start* of the string, and `$` will only match the pattern if it is at the *end* of the string. 
+
+```{r warning=FALSE, message = FALSE}
+
+sample%>%
+  mutate(start = str_replace(text, "^text", "----"),
+         end = str_replace(text, "text$", "----"))%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+## Advanced Pattern Matching in Regex
+
+Now that you understand how to use regex to match basic patterns with some simple tricks such as anchors and metacharacters, we will introduce some more advanced concepts. These should serve as a building block for allowing you to complete more advanced tasks like pulling file names or phone numbers out of long strings of text.
+
+### Groups
+
+Groups allow you to extract patterns from text without extracting the entire pattern. This can be really useful for extracting things like file names or urls. 
+
+Unfortunately, actually pulling out just the information you need is a little more complicated than you would expect, especially if you want to stay in a tidy framework. 
+
+First lets look at the solution:
+
+```{r warning=FALSE, message = FALSE}
+
+characters = data.frame(
+  text = c("file_record_transcript.pdf", "file_07241999.pdf", "testfile_fake.pdf.tmp")
+)
+
+characters%>%
+  group_by(text)%>%
+  mutate(match = unlist(str_match_all(text, "(.*?)\\.pdf$"))[2])%>%
+  kable()%>%
+  kable_styling("striped")
+
+
+```
+
+Notice that we are using `str_match()` instead of `str_extract()`. This is because `str_extract()` does not work with groups. More importantly, note that we had to wrap the `str_match()` in an `unlist()` function.  
+
+```{r warning=FALSE, message = FALSE}
+
+text = c("file_record_transcript.pdf", "file_07241999.pdf", "testfile_fake.pdf.tmp")
+
+str_match_all(text, "(.*?)\\.pdf$")
+
+```
+
+For groups, `str_match()` will return a **list** with both the full pattern matched and the *just* the group matched as well. For our use case, we are just interested in the matched group. 
+
+So you would think we just need to `unlist()` (in order to take the patterns out of a list) the variable, and we should have what we need right? And since unlist will put the items in a vector, we just need the second item in the vector.
+
+```{r warning=FALSE, message=FALSE}
+
+characters%>%
+  mutate(match = unlist(str_match_all(text, "(.*?)\\.pdf$"))[2])%>%
+  kable()%>%
+  kable_styling("striped")
+
+
+```
+
+Whoops! That put everything into one vector and returned the same element, the second element, for every single variable. To fix this, use a `group_by()` ahead of your mutate so that a unique vector, with only two elements, will be created for each unique row. 
+
+If you are confused as to why the same thing was returned repeatedly without a `group_by()` check out what the match variable would look like as a vector. 
+
+```{r warning=FALSE, message=FALSE}
+
+match = unlist(str_match_all(text, "(.*?)\\.pdf$"))
+match
+
+```
+
+### Character and Numeric Ranges 
+
+Ranges allow for you to have multiple possible patterns to match against. Ranges are called using brackets `[]`. 
+
+* `[abc]` will be a, b or c.
+* `[^abc]` will be neither a nor b nor c (due to the carrot `^`)
+* `[a-c]` will be a *through* c.
+
+```{r warning=FALSE, message = FALSE}
+
+characters = data.frame(
+  text = c("can", "man", "fan", "ran", "tan")
+)
+
+characters %>%
+  mutate(match = str_extract(text, "[cmf]an"),
+         match = str_match(text, "[^rt]an"),
+         match = str_match(text, "[e-r]an")
+         )%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+The same rules will apply for numbers as well as letters. But its important to remember that for regex, numbers are treated the same as characters. So 154 isnt 154 but 1, 5 and 4. 
+
+```{r warning=FALSE, message = FALSE}
+
+numbers = data.frame(
+  text = c(10, 4, 22, 35, 1, 0, 300, 199)
+)
+
+numbers %>%
+  mutate(
+        one2nine = str_extract(text, "^[1-9]$"),
+        ten2fiftynine = str_extract(text, "^[1-5][0-9]$"),
+        one2twentynine = str_extract(text, "^[1-9]$|^[1-2][0-9]$"),
+         )%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+### Repeating Patterns
+
+Writing regex can be tedious. Let's say we wanted to find a phone number in some text. Using the digit metacharater we learned earlier we could write something like `\\d\\d\\d-\\d\\d\\d\\d`. 
+
+However using curly brackets, we could specify the number of *repitions* for a given character. For example, we could simplify the above regex to the following `\\d{3}-\\d{4}`.
+
+To give a more realistic example, let's say you are talking to a cute girl or guy and they want to give you their number. At this point, you are very eyes-on-the-prize and are not interested in what they have to say but just need those digits. You can use regex to get just the information you need and filter out the unimportant stuff. 
+
+```{r}
+
+text = "Anywho, I, who am your very cute crush, think you are very cute yourself and I wanted to give you my number. But I am so embarassed, so I am fumbling over my words because you are so attractive and oh dear, I promise I am not usually like this. Well anywho, the digits! I was supposed to give those to you, but wait just a moment what was my own number again. Ah yes it is 555-6789. You got that? You didn't write it down. Do you need me to text it to you? Oh you will text me first. Good. I am excited."
+
+str_extract(text, "\\d{3}-\\d{4}")
+```
+
