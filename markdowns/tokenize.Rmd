@@ -71,7 +71,7 @@ bigrams%>%
 ## Removing Stop Words
 Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
 
-For humans, more words are needed but for NLP they add nothing. Let's look at that last word for example.
+For humans, more words are needed but for NLP they add nothing. Let's look at that last sentence for example.
 
 >For humans, more words are needed but for NLP they add nothing.
 
@@ -112,6 +112,12 @@ Finally, concatinate all the columns back together with `unite()`
 bigrams_united <- bigrams_filtered %>%
   unite(bigram, word1, word2, sep = " ") 
 
+bigrams_united%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+
+
 ```
 
 And there you have it! A clean dataframe of bigrams without stop words the `tidytext` way.
@@ -140,9 +146,7 @@ bigrams_united%>%
   kable_styling("striped")
 ```
 
-
 So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would "of the" as one of the top bigrams in nearly any book or paper. 
-
 
 Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
 
@@ -201,4 +205,4 @@ darkness %>%
 
 ## Conclusion
 
-As you can see, handling text data with tidytext is very simple. The big advantage of using this package is that it works with other tidyverse functions, and this frame work can even be used for some analytic tasks such as sentiment analysis and topic modeling. 
+As you can see, handling text data with tidytext is very simple. The big advantage of using this package is that it works with other tidyverse functions, and this framework can even be used for some analytic tasks such as sentiment analysis and topic modeling. 
