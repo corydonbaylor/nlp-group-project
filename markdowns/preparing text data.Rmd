@@ -1,5 +1,5 @@
 ---
-title: "Tokenizing with tidytext"
+title: "Preparing Text Data"
 author: "Team Hanley NLP Working Group"
 output:
   html_document:
@@ -11,6 +11,13 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Data pre-processing
+
+Text data pre-processing, or normalization, is the process of converting text data into a more machine-readable form before analyzing it. This normalization entails a number of processes, which can include tokenization, stop words removal, and morphological normalization, most commonly in the form of stemming and lemmatization. 
+
+That might sound like a lot, but no worries! This tutorial will dive into each of these approaches for preparing text data.
+
 ## Tokenizing by n-grams
 
 A computer cannot read a novel. At least not in the way that you or me do. A computer needs text to be broken down into something more digestible in order to work with it. **Tokenization** is the process by which big chunks of text are broken down into smaller more digestible chunks, oftentimes into single words. 
@@ -152,6 +159,84 @@ bigrams_united%>%
 So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would see "of the" as one of the top bigrams in nearly any book or paper. 
 
 Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
+
+
+## Stemming and Lemmatization
+
+After tokenization and stop word removal, you can further prepare your text data by breaking your words down to their more fundamental meaning-bearing units through text normalization. To understand this, it's helpful to take a brief look at some relevant linguistic terminology.
+
+Closely tied to text normalization is morphology, the study of the structure of words -- particularly, of the smaller parts of words that have meaning, called morphemes. Simple words don't have internal structure and only consist of one morpheme (e.g., "eat", "weak", "build"). Complex words consist of two or more morphemes (e.g., "worker", "quicker"). In the case of "worker", "er" is added to the root word "work" to create a noun. Morphological normalization is the process of breaking down words to their root forms. 
+
+Also important to understand is inflection. Inflection is the modification of words to express different grammatical categories. Most languages, including English, have inflection.
+
+The two most common ways of text normalization -- breaking words down to their core parts -- are stemming and lemmatization.
+
+Stemming is the process of reducing inflection in words to their "root" forms through the use of an algorithm. While there are a number of stemming algorithms, we'll take a look at the results of the Snowball stemming algorithm, which comes built in to the R library `corpus`.
+
+
+
+```{r, warning=FALSE, message=F}
+
+library(corpus)
+
+text_love <- "love loving lovingly loved lover lovely love"
+text_love <- text_tokens(text_love, stemmer = "en") 
+text_love
+
+```
+
+As we can see, the algorithm was able to break down most of these words to the root "love". Let's take a look at another example.
+
+```{r, warning=FALSE, message=F}
+
+text_fish <- "fish fisher fishing fished fishery"
+text_fish <- text_tokens(text_fish, stemmer = "en") 
+text_fish
+
+```
+
+
+Our results are starting to look fishy, so to speak. While "fish", "fishing", and "fished" broke down to "fish" (or stayed put in the case of "fish"), "fisher" didn't change and "fishery" became "fisheri", not something in the English language last time I checked.
+
+Herein lies an inherent limitation of stemming. While this approach is relatively  computationally efficient and more inclusive in terms of identifying similar words, it sometimes trims words down inappropriately, namely with overstemming or understemming.
+
+Overstemming is when too much of a word is cut off, resulting either in nonsensical stems, where the word has lost its meaning (e.g., "fisheri" above), or in words being resolved to the same stems when they shouldn't be. For example, "university", "universal", "universities", and "universe" could resolve to the stem "univers", instead of having "universal" and "universe" resolve to "univers" and "university" and "universities" resolve to "universi". 
+
+Understemming is when two words should be stemmed to the same root but are not. A common example is the words "alumnus", "alumni", and "alumnae" resolving to "alumnu", "alumni", and "alumna".
+
+The other most common text normalization approach is lemmatization. According to this helpful [article](https://nlp.stanford.edu/IR-book/html/htmledition/stemming-and-lemmatization-1.html), lemmatization "usually refers to doing things properly with the use of a vocabulary and morphological analysis of words, normally aiming to remove inflectional endings only and to return the base or dictionary form of a word, which is known as the lemma." That is to say, lemmatization ensures that the root word belongs to the language. 
+
+Unlike stemming, which uses an algorithm to trim down to a root word, lemmatization refers to the WordNet corpus to produce a root word, much like looking up a word in a dictionary.
+
+For example, a lemmatizer should map "gone", "going", and "went" into "go".
+
+There are a few ways we can lemmatize in R. First we'll check out an example using the library `textstem`. 
+
+```{r, warning=FALSE, message=F}
+
+library(textstem)
+vector <- c("eat", "ate", "eaten", "eating", "eaten")
+lemmatize_words(vector)
+
+```
+
+Notice that the words under examination are in a vector. If we want to perform lemmatization on a corpus, we'll need to use the `tm` library.
+
+
+```{r, warning=FALSE, message=F}
+
+library(tm)
+
+example = c('Jog', 'jogging', 'jogged', 'ran', 'run', 'running', 'am', 'is', 'are', 'was',
+            'were', 'be', 'being', 'been') 
+df = as.data.frame(example) 
+corpus = Corpus(VectorSource(df$example))  
+corpus <- tm_map(corpus, lemmatize_strings)
+inspect(corpus)
+
+```
+
+
 
 
 ## Example: Trigrams for Heart of Darkness {.tabset .tabset-fade}
