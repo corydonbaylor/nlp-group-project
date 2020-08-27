@@ -1,0 +1,296 @@
+---
+title: "Preparing Text Data"
+author: "Team Hanley NLP Working Group"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data pre-processing
+
+Text data pre-processing, or normalization, is the process of converting text data into a more machine-readable form before analyzing it. This normalization entails a number of processes, which can include tokenization, stop words removal, and text normalization, most commonly in the form of stemming and lemmatization. 
+
+That might sound like a lot, but no worries! This tutorial will dive into each of these approaches for preparing text data.
+
+## Tokenizing by n-grams
+
+A computer cannot read a novel. At least not in the way that you or me do. A computer needs text to be broken down into something more digestible in order to work with it. **Tokenization** is the process by which big chunks of text are broken down into smaller more digestible chunks, oftentimes into single words. 
+
+In this tutorial, we will cover tokenization and perform some basic data cleaning that will transform a long string of text into discrete oberservations that R can work with more easily. 
+
+### Getting the Data
+
+But first, we need data! We will be using the book Metamorphosis by Franz Kafka as our example data. 
+
+```{r warning=FALSE, message=FALSE}
+
+library(dplyr)
+library(tidytext)
+library(gutenbergr)
+library(kableExtra)
+library(tidyr)
+
+```
+
+### Unigrams
+
+An n-gram is a contiguous sequence of n words from a sample of text. A unigram is a single word, a bigram is two words, a trigram is three words, and so on and so on. 
+
+Tokenizing by unigrams is easy! We'll use our text from Metamorphosis.
+
+```{r, message=F, warning=F, error = F}
+
+# downloading metamorphasis
+meta = gutenberg_download("5200")
+
+unigrams = meta %>% unnest_tokens(word, text, token = "ngrams", n = 1)
+
+unigrams%>%
+    # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+### Bigrams
+
+And here's an example of tokenizing by bigrams. Notice the only argument in `unnest_tokens` that needs to change from our unigram example is `n =`. (The first argument listed here is the column name, which can be whatever you want.)
+
+```{r, message=F, warning=F, error = F}
+
+
+bigrams = meta %>% unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
+# below is purely for visuzliations purposes
+bigrams%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+
+## Removing Stop Words
+Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
+
+For humans, more words are needed, but for NLP they add nothing. Let's look at that last word for example.
+
+>For humans, more words are needed but for NLP they add nothing.
+
+Now without the stop words!
+
+>humans more words needed NLP add nothing.
+
+As you can see, computer really only need cave man speak to get the semantic meaning of words.
+
+### How do we know if something is a stop word?
+As you might guess, what exactly constitutes a stop word is somewhat subjective. When thinking about defining a stop word, we need to think about generalities and scale. For example, "no" can be a really important word semantically, and for certain tasks, like sentiment analysis, [you may want to keep certain stop words](https://medium.com/@limavallantin/why-is-removing-stop-words-not-always-a-good-idea-c8d35bd77214), especially words like "no" or "not". Handling these words is called [negation handling](https://towardsdatascience.com/sentiment-analysis-in-r-good-vs-not-good-handling-negations-2404ec9ff2ae). But we will get into that when we cover sentiment analysis.   
+
+Let's use our bigram example from before. We are going to be basing our methodology for removing stop words on [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). It's pretty simple and somewhat scalable.
+
+First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
+
+```{r warning = FALSE, message = FALSE}
+
+bigrams_separated <- bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+```
+
+Next for each "word" column, filter out all the stop words
+
+```{r warning = FALSE, message = FALSE}
+
+bigrams_filtered <- bigrams_separated %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)
+
+```
+
+Finally, concatinate all the columns back together with `unite()`
+
+```{r warning = FALSE, message = FALSE}
+
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ") 
+
+bigrams_united%>%
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+
+
+```
+
+And there you have it! A clean dataframe of bigrams without stop words the `tidytext` way.
+
+## Counting n-grams
+
+While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Let's look at the bigram frequency of *Metamorphosis* with and without removing stop words:
+
+**With Stop Words**
+```{r, warning=FALSE, message=F}
+bigrams%>%
+  count(bigram, sort = T)%>%
+  # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+```
+
+**Without Stop Words**
+```{r, warning=FALSE, message=F}
+bigrams_united%>%
+  count(bigram, sort = T)%>%
+  # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+```
+
+
+So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would see "of the" as one of the top bigrams in nearly any book or paper. 
+
+Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
+
+
+## Stemming and Lemmatization
+
+After tokenization and stop word removal, you can further prepare your text data by breaking your words down to their more fundamental meaning-bearing units through text normalization. To understand this, it's helpful to take a brief look at some relevant linguistic terminology.
+
+Closely tied to text normalization is morphology, the study of the structure of words -- particularly, of the smaller parts of words that have meaning, called morphemes. Simple words don't have internal structure and only consist of one morpheme (e.g., "eat", "weak", "build"). Complex words consist of two or more morphemes (e.g., "worker", "quicker"). In the case of "worker", "er" is added to the root word "work" to create a noun. Morphological normalization is the process of breaking down words to their root forms. 
+
+Also important to understand is inflection. Inflection is the modification of words to express different grammatical categories. Most languages, including English, have inflection.
+
+The two most common ways of text normalization -- breaking words down to their core parts -- are stemming and lemmatization.
+
+Stemming is the process of reducing inflection in words to their "root" forms through the use of an algorithm. While there are a number of stemming algorithms, we'll take a look at the results of the Snowball stemming algorithm, which comes built in to the R library `corpus`.
+
+
+
+```{r, warning=FALSE, message=F}
+
+library(corpus)
+
+text_love <- "love loving lovingly loved lover lovely love"
+text_love <- text_tokens(text_love, stemmer = "en") 
+text_love
+
+```
+
+As we can see, the algorithm was able to break down most of these words to the root "love". Let's take a look at another example.
+
+```{r, warning=FALSE, message=F}
+
+text_fish <- "fish fisher fishing fished fishery"
+text_fish <- text_tokens(text_fish, stemmer = "en") 
+text_fish
+
+```
+
+
+Our results are starting to look fishy, so to speak. While "fish", "fishing", and "fished" broke down to "fish" (or stayed put in the case of "fish"), "fisher" didn't change and "fishery" became "fisheri", not something in the English language last time I checked.
+
+Herein lies an inherent limitation of stemming. While this approach is relatively  computationally efficient and more inclusive in terms of identifying similar words, it sometimes trims words down inappropriately, namely with overstemming or understemming.
+
+Overstemming is when too much of a word is cut off, resulting either in nonsensical stems, where the word has lost its meaning (e.g., "fisheri" above), or in words being resolved to the same stems when they shouldn't be. For example, "university", "universal", "universities", and "universe" could resolve to the stem "univers", instead of having "universal" and "universe" resolve to "univers" and "university" and "universities" resolve to "universi". 
+
+Understemming is when two words should be stemmed to the same root but are not. A common example is the words "alumnus", "alumni", and "alumnae" resolving to "alumnu", "alumni", and "alumna".
+
+The other most common text normalization approach is lemmatization. According to this helpful [article](https://nlp.stanford.edu/IR-book/html/htmledition/stemming-and-lemmatization-1.html), lemmatization "usually refers to doing things properly with the use of a vocabulary and morphological analysis of words, normally aiming to remove inflectional endings only and to return the base or dictionary form of a word, which is known as the lemma." That is to say, lemmatization ensures that the root word belongs to the language. 
+
+Unlike stemming, which uses an algorithm to trim down to a root word, lemmatization refers to the WordNet corpus to produce a root word, much like looking up a word in a dictionary.
+
+For example, a lemmatizer should map "gone", "going", and "went" into "go".
+
+There are a few ways we can lemmatize in R. First we'll check out an example using the library `textstem`. 
+
+```{r, warning=FALSE, message=F}
+
+library(textstem)
+vector <- c("eat", "ate", "eaten", "eating", "eaten")
+lemmatize_words(vector)
+
+```
+
+Notice that the words under examination are in a vector. If we want to perform lemmatization on a corpus, we'll need to use the `tm` library.
+
+
+```{r, warning=FALSE, message=F}
+
+library(tm)
+
+example = c('Jog', 'jogging', 'jogged', 'ran', 'run', 'running', 'am', 'is', 'are', 'was',
+            'were', 'be', 'being', 'been') 
+df = as.data.frame(example) 
+corpus = Corpus(VectorSource(df$example))  
+corpus <- tm_map(corpus, lemmatize_strings)
+inspect(corpus)
+
+```
+
+--Add something here about situations where you would use stemming and lemmatization. Use cases for each? Pros and cons of each?
+
+
+## Example: Trigrams for Heart of Darkness {.tabset .tabset-fade}
+
+Overall, this tutorial is simply meant to acquaint you with the basic premises of preparing text data for analysis, specifically in the tidytext universe. 
+
+Now, try to repeat the above steps for "Heart of Darkness" by Joseph Conrad. But this time, let's use trigrams instead of bigrams. **The Gutenberg id is 219**.
+
+### Problem
+
+We will be organizng the book "Heart of Darkness" into **trigrams**. You will need all the packages and skill sets described above to prepare "Heart of Darkness" for analysis. 
+
+**Hints**
+- `tidytext` is mostly scalable but will require some minor edits to handle trigrams
+- Make sure you remove stop words from *all three* of the trigrams.
+
+### Solution
+
+**Step 1: Download the Book**
+```{r, warning = F, message=F}
+
+darkness = gutenberg_download("219")
+
+```
+
+**Step 2: Tokenize the Dataset**
+```{r, warning = F, message=F}
+
+darkness %>%
+  unnest_tokens(trigram, text, token = "ngrams", n = 3)%>%
+  # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+**Step 3: Remove the Stopwords**
+```{r, warning = F, message=F}
+
+darkness %>%
+  unnest_tokens(trigram, text, token = "ngrams", n = 3)%>%
+  separate(trigram, c("word1", "word2", "word3"), sep = " ")%>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word)%>%
+  filter(!word3 %in% stop_words$word)%>%
+  unite(trigram, word1, word2, word3, sep = " ")%>%
+  # below is purely for visuzliations purposes
+  slice(1:5)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+## Conclusion
+
+As you can see, handling text data with tidytext is very simple. The big advantage of using this package is that it works with other tidyverse functions, and this framework can even be used for some analytic tasks such as sentiment analysis and topic modeling. 
