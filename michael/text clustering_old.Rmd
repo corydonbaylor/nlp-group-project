@@ -1,0 +1,138 @@
+---
+title: "Introduction to Text Clustering"
+author: "Team Hanley NLP Working Group"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+---
+
+
+## Text Clustering
+
+Clustering is the organization of unlabelled objects such that objects in the same group are similar to each other and dissimilar to those in other groups. Text clustering is such a process applied to text data.
+
+As someone much smarter than me points out [here](https://cai.tools.sap/blog/introduction-text-clustering/), clustering has three requirements: a "distance measure to define whether or not two documents are similar, a criterion function to compute the quality of our clusters and finally an algorithm to optimize this criterion."
+
+
+This tutorial will highlight three clustering approaches: hierarchical, partitional, and density-based.
+
+### Selecting the Optimal Number of Clusters
+
+```{r warning=FALSE, message=FALSE}
+
+df = data("mtcars")
+
+```
+
+
+### Clustering Methods
+
+
+```{r warning=FALSE, message=FALSE}
+
+library(tm)
+library(proxy)
+library(data.table)
+library(dendextend) 
+library(rtweet)
+source("../keys.R")
+
+twitter_token <- create_token(
+  app = twitter_app,
+  consumer_key = twitter_api_key,
+  consumer_secret = twitter_api_secret_key,
+  access_token = twitter_access_token,
+  access_secret = twitter_access_token_secret
+)
+
+tomcruise = get_timeline("@TomCruise", n =100)
+
+corpus <- Corpus(VectorSource(tomcruise$text))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, stripWhitespace)
+corpus <- tm_map(corpus, removeWords, stopwords('english'))
+corpus <- tm_map(corpus, stemDocument)
+
+```
+
+Next, we'll create a document term matrix, remove superfluous words, and make a matrix of word frequencies.
+
+
+```{r warning=FALSE, message=FALSE}
+
+tdm <- tm::DocumentTermMatrix(corpus)
+t <- removeSparseTerms(tdm, sparse=0.90) #remove superfluous words
+m <- as.matrix(t)
+distance <- dist(scale(m))
+
+hc <- hclust(distance)
+
+# rect.hclust(hc, k=6)
+
+
+dend <- hc
+
+dend <- color_branches(dend, k = 3)
+dend <- color_labels(dend, k = 3)
+
+plot(dend, main = 'Cluster Dendrogram', ylab = 'Height')
+
+```
+
+
+```{r warning=FALSE, message=FALSE}
+
+library(proxy)
+tdm <- tm::DocumentTermMatrix(corpus) 
+tdm.tfidf <- tm::weightTfIdf(tdm)
+tdm.tfidf <- tm::removeSparseTerms(tdm.tfidf, 0.999) 
+tfidf.matrix <- as.matrix(tdm.tfidf) 
+dist.matrix = proxy::dist(tfidf.matrix, method = "cosine")
+
+```
+
+And "nrc" assigns words as either "yes" or "no" under categories of positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust, meaning that any given word can have multiple sentiments attached to it.
+
+```{r warning=FALSE, message=FALSE}
+
+truth.K <- 16
+clustering.kmeans <- kmeans(tfidf.matrix, truth.K) 
+clustering.hierarchical <- hclust(dist.matrix, method = "ward.D2") 
+clustering.dbscan <- dbscan::hdbscan(dist.matrix, minPts = 10)
+
+
+```
+
+In the tidytext universe of sentiment analysis, the basic workflow for sentiment analysis will be to (1) remove stop words, (2) join on sentiments, and (3) prepare for presentation. Let's walk through a few examples of this. 
+
+## Sentiment Analysis on Tweets
+
+Let's look at some Tom Cruise tweets and see how we can apply sentiment analysis through wordclouds. We'll start by pulling in our tweets and cleaning up our text. You can find a tutorial on pulling tweets [here](https://nlp-working-group.netlify.app/nlp/twitter-tutorial.html). 
+
+```{r warning=FALSE, message=FALSE}
+
+master.cluster <- clustering.kmeans$cluster 
+slave.hierarchical <- cutree(clustering.hierarchical, k = truth.K) 
+slave.dbscan <- clustering.dbscan$cluster 
+
+points <- cmdscale(dist.matrix, k = 2) 
+palette <- colorspace::diverge_hcl(truth.K) # Creating a color palette 
+previous.par <- par(mfrow=c(2,2), mar = rep(1.5, 4)) 
+ 
+plot(points, main = 'K-Means clustering', col = as.factor(master.cluster), 
+     mai = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), 
+     xaxt = 'n', yaxt = 'n', xlab = '', ylab = '') 
+plot(points, main = 'Hierarchical clustering', col = as.factor(slave.hierarchical), 
+     mai = c(0, 0, 0, 0), mar = c(0, 0, 0, 0),  
+     xaxt = 'n', yaxt = 'n', xlab = '', ylab = '') 
+plot(points, main = 'Density-based clustering', col = as.factor(slave.dbscan), 
+     mai = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), 
+     xaxt = 'n', yaxt = 'n', xlab = '', ylab = '') 
+
+
+
+```
+

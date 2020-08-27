@@ -34,7 +34,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Saving Credentials in a .gitignore
 After finally getting your credentials, you need to protect them. If you are just working locally on your computer, this is easy. Just do whatever you usually do to protect complicated passwords. However, if you are working on a git project (like this one), then you need to do something extra.
 
-Luckily, the process is very simple. (1) Save your credentials in a different script and (2) add that script into your .gitignore, and then (3) add that script into the .gitignore. 
+Luckily, the process is very simple. (1) Save your credentials in a different script, (2) add that script into your .gitignore, and then (3) add that script into the .gitignore. 
 
 **Save your credentials into a script called keys.R**
 ```{}
@@ -53,11 +53,11 @@ This part is a little more complicated than you may expect because you are just 
 `touch .gitignore`
 
 **Add script into your .gitignore and then call it into your project**
-Just open up the .gitignore (notepad works fine), and add keys.R into the .gitignore file. Now if you are simply just writing `keys.R` into the file, than it has to be in the same directory. There are a bunch of different options for [.gitignore](https://www.atlassian.com/git/tutorials/saving-changes/gitignore). Finally, make sure that you call the keys script into your project so that the keys are in your environment. 
+Just open up the .gitignore (Notepad works fine), and add keys.R into the .gitignore file. Now if you are simply just writing `keys.R` into the file, then it has to be in the same directory. There are a bunch of different options for [.gitignore](https://www.atlassian.com/git/tutorials/saving-changes/gitignore). Finally, make sure that you call the keys script into your project so that the keys are in your environment. 
 
 ## rtweet
 
-`rtweet` is a [package](rtweet.info) designed to interact with twitter's API. It is tidyverse ready meaning that its API calls return a data.frame. This is really convienient if your workflow includes things like `dplyr` or `tidytext`.
+`rtweet` is a [package](rtweet.info) designed to interact with Twitter's API. It is tidyverse ready meaning that its API calls return a data.frame. This is really convienient if your workflow includes things like `dplyr` or `tidytext`.
 
 ### Retrieving Topics
 In order to retrieve topics from Twitter with the rtweet package, you must create a Twitter Developer account to further create your very own unique API access tokens (keys). Follow the instructions on this [link](https://rtweet.info/articles/auth.html) to do so.

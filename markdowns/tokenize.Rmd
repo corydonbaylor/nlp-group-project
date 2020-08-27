@@ -71,7 +71,7 @@ bigrams%>%
 
 
 ## Removing Stop Words
-Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
+Stop words are words that are typically more important to the grammar of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
 
 For humans, more words are needed, but for NLP they add nothing. Let's look at that last word for example.
 
@@ -88,7 +88,7 @@ As you might guess, what exactly constitutes a stop word is somewhat subjective.
 
 Let's use our bigram example from before. We are going to be basing our methodology for removing stop words on [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). It's pretty simple and somewhat scalable.
 
-First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
+First split the ngrams into their own columns. In this case, since it's bigrams, the columns will be "word1" and "word2"
 
 ```{r warning = FALSE, message = FALSE}
 
@@ -162,7 +162,7 @@ Now, try to repeat the above steps for "Heart of Darkness" by Joseph Conrad. But
 
 ### Problem
 
-We will be organizng the book "Heart of Darkness" into **trigrams**. You will need all the packages and skill sets described above to prepare "Heart of Darkness" for analysis. 
+We will be organizing the book "Heart of Darkness" into **trigrams**. You will need all the packages and skill sets described above to prepare "Heart of Darkness" for analysis. 
 
 **Hints**
 - `tidytext` is mostly scalable but will require some minor edits to handle trigrams
