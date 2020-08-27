@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Data pre-processing
 
-Text data pre-processing, or normalization, is the process of converting text data into a more machine-readable form before analyzing it. This normalization entails a number of processes, which can include tokenization, stop words removal, and morphological normalization, most commonly in the form of stemming and lemmatization. 
+Text data pre-processing, or normalization, is the process of converting text data into a more machine-readable form before analyzing it. This normalization entails a number of processes, which can include tokenization, stop words removal, and text normalization, most commonly in the form of stemming and lemmatization. 
 
 That might sound like a lot, but no worries! This tutorial will dive into each of these approaches for preparing text data.
 
@@ -236,7 +236,7 @@ inspect(corpus)
 
 ```
 
-
+--Add something here about situations where you would use stemming and lemmatization. Use cases for each? Pros and cons of each?
 
 
 ## Example: Trigrams for Heart of Darkness {.tabset .tabset-fade}
