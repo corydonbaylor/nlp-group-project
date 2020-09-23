@@ -51,3 +51,46 @@ html_node(xpath='//*[@id="mw-content-text"]/div/table[2]') %>%
   html_table(fill=TRUE)
 ```
 
+### Web Scraping Not So Basics
+
+Using the `html_table` function is all well and good if you are trying to pull data from a web table but often times you are trying to create a dataframe from unorganized data. 
+
+Enter `html_text`. Like `html_table`, this is also is descriptively named. This will extract text from inside a tag. Lets look at a quick example. Lets head to over to IMDB. 
+
+As you can see we have a list of movies released in 2017 here that we may want to put into a dataframe. Step 1 then will be to get the html into R, using our trusty `read_html` function. Next we want to grab the titles of the movies. So we will right click and open up dev tools. 
+
+Notice how when we hover over the `<h3>` class we see that the title become highlighted? That means that we have the right tag. We are going to use the CSS class instead of the xpath because we want to pull data from this webpage for **every** title not just this one. Using the CSS class will pull data on all tags that are assigned that class, thus giving us all the titles. 
+
+We are going to further refine what we are pulling by specifying that we are looking for a tags that use this class rather than any type of tag. Lets see what it pulls back!
+
+```
+url = "http://www.imdb.com/search/title?year=2017&title_type=feature&"
+
+# This CSS class contains all the title names for movies.
+titles = read_html(url)%>%
+  html_nodes(css = '.lister-item-header a')
+
+titles[1:2]
+```
+
+The good news is that it does in fact pull back the data that we are looking for. The bad news is that it also pulls back the entire tag instead of just the text within the tag. 
+
+Easy enough, we can use that `html_text` tag we talked about earlier to extract the text. 
+
+```
+titles = read_html(url)%>%
+  html_nodes(css = '.lister-item-header a')%>%
+  html_text()
+```
+
+You will end up with a character vector as a result. Combine this with other data and you can build a dataframe. Which we will do in our next example!
+
+
+
+
+
+
+
+
+
+  
