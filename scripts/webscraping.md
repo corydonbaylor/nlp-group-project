@@ -85,7 +85,19 @@ titles = read_html(url)%>%
 
 You will end up with a character vector as a result. Combine this with other data and you can build a dataframe. Which we will do in our next example!
 
+### Example 1
 
+Next we to use the html_text function to try and create a dataframe. We will want to have the rank, title, run_time, genre and primary genre. 
+
+A good strategy would be to find the CSS classes that you will need using inspect. Then to extract them using html_text or extract_numeric and then to put them into a dataframe using `data.frame()`. Pause here before we go over the answers
+
+We will pretty much being doing what we covered in the "Web Scrapping Not so Basics" tutorial five different times. 
+
+For each variable that we create, we first use html nodes to pull back multiple nodes based on the CSS class, html_text to extract the text, and then some regex to clean up the results. 
+
+So for example, to pull the rank, we pull all nodes with .text-primary as the css class, then take out the text, then extract_numeric to get the numbers. This will result in a numeric vector, which we save as a variable called rank. 
+
+We wrap all of this in a data.frame function to have each vector serve as a variable.
 
 
 
