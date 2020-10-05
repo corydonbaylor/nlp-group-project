@@ -80,20 +80,26 @@ bigrams%>%
 ## Removing Stop Words
 Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
 
-For humans, more words are needed, but for NLP they add nothing. Let's look at that last word for example.
+For humans, more words are needed, but for NLP they add nothing. Let's look at that last sentence for example.
 
->For humans, more words are needed but for NLP they add nothing.
+"For humans, more words are needed but for NLP they add nothing."
 
 Now without the stop words!
 
->humans more words needed NLP add nothing.
+"humans more words needed NLP add nothing."
 
-As you can see, computer really only need cave man speak to get the semantic meaning of words.
+As you can see, computer really only need cave man speak to get the semantic meaning of a string of text. But now that we know that computer's don't necessarily need all the words in a string of text, how do we know what words to use?
 
-### How do we know if something is a stop word?
-As you might guess, what exactly constitutes a stop word is somewhat subjective. When thinking about defining a stop word, we need to think about generalities and scale. For example, "no" can be a really important word semantically, and for certain tasks, like sentiment analysis, [you may want to keep certain stop words](https://medium.com/@limavallantin/why-is-removing-stop-words-not-always-a-good-idea-c8d35bd77214), especially words like "no" or "not". Handling these words is called [negation handling](https://towardsdatascience.com/sentiment-analysis-in-r-good-vs-not-good-handling-negations-2404ec9ff2ae). But we will get into that when we cover sentiment analysis.   
+As you might guess, what exactly constitutes a stop word is somewhat subjective. However, researchers have put together lists of words that typically do not contain much semantic meaning. We are going to be using a list (also called a lexicon in this context) to filter out the stop words. This list comes with the `tidytext` package and is loaded in when you load the library. It can be found by typing `View(stop_words)` into the console. 
 
-Let's use our bigram example from before. We are going to be basing our methodology for removing stop words on [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). It's pretty simple and somewhat scalable.
+So then, we have a list of words that we will filter out contained in the `stop_words` dataset. If we are working with unigrams than the job is easy. We just need to filter out unigrams, so they do not contain any stop words, like so:
+
+```{r warning = FALSE, message = FALSE}
+unigrams_filtered = unigrams %>%
+  filter(!word %in% stop_words$word)
+```
+
+But if we have n-grams where n is greater than one, we have an issue! The stop word list is just single words. To handle this, we are going to be basing our methodology for removing stop words on [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). It's pretty simple and somewhat scalable.
 
 First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
 
@@ -131,49 +137,21 @@ bigrams_united%>%
 
 And there you have it! A clean dataframe of bigrams without stop words the `tidytext` way.
 
-## Counting n-grams
-
-While it may seem simple, counting frequency of n-grams (in our case bigrams) will tell us a lot about the content of the text. Let's look at the bigram frequency of *Metamorphosis* with and without removing stop words:
-
-**With Stop Words**
-```{r, warning=FALSE, message=F}
-bigrams%>%
-  count(bigram, sort = T)%>%
-  # below is purely for visuzliations purposes
-  slice(1:5)%>%
-  kable()%>%
-  kable_styling("striped")
-```
-
-**Without Stop Words**
-```{r, warning=FALSE, message=F}
-bigrams_united%>%
-  count(bigram, sort = T)%>%
-  # below is purely for visuzliations purposes
-  slice(1:5)%>%
-  kable()%>%
-  kable_styling("striped")
-```
-
-
-So as we can see, before we remove the stop words, we largely get unremarkable bigrams at the top of the list. In fact, I would guess that you would see "of the" as one of the top bigrams in nearly any book or paper. 
-
-Once we remove the stop words, we begin to generate content that is specific to our book. Interestingly, "earn money" is one of the top five bigrams in the book!
-
-
 ## Stemming and Lemmatization
 
-After tokenization and stop word removal, you can further prepare your text data by breaking your words down to their more fundamental meaning-bearing units through text normalization. To understand this, it's helpful to take a brief look at some relevant linguistic terminology.
+After tokenization and stop word removal, you can further prepare your text data by breaking your words down to their more fundamental meaning-bearing units through text normalization. To understand this, it's helpful to take a brief look at some relevant terminology.
 
-Closely tied to text normalization is morphology, the study of the structure of words -- particularly, of the smaller parts of words that have meaning, called morphemes. Simple words don't have internal structure and only consist of one morpheme (e.g., "eat", "weak", "build"). Complex words consist of two or more morphemes (e.g., "worker", "quicker"). In the case of "worker", "er" is added to the root word "work" to create a noun. Morphological normalization is the process of breaking down words to their root forms. 
+Closely tied to text normalization is **morphology**, the study of the structure of words -- particularly, of the smaller parts of words that have meaning, called **morphemes**. Simple words don't have internal structure and only consist of one morpheme (e.g., "eat", "weak", "build"). Complex words consist of two or more morphemes (e.g., "worker", "quicker"). In the case of "worker", "er" is added to the root word "work" to create a noun. Morphological normalization is the process of breaking down words to their root forms. 
 
-Also important to understand is inflection. Inflection is the modification of words to express different grammatical categories. Most languages, including English, have inflection.
+Also important to understand is inflection. Inflection is the modification of words to express different grammatical categories. For example, for the root word "walk", we can added the inflection -ed to indicate that the walking occurred in the past or -ing to indicate that the walking is ongoing. 
 
 The two most common ways of text normalization -- breaking words down to their core parts -- are stemming and lemmatization.
 
-Stemming is the process of reducing inflection in words to their "root" forms through the use of an algorithm. While there are a number of stemming algorithms, we'll take a look at the results of the Snowball stemming algorithm, which comes built in to the R library `corpus`.
+### Stemming
 
+**Stemming** is the process of reducing inflection in words to their "root" forms through the use of an algorithm. Put simply, an algorithm looks for patterns that typically indicates inflection like "ed" or "ing" and removes it in order to reduce the word to it's stem or root.
 
+While there are a number of stemming algorithms, we'll take a look at the results of the Snowball stemming algorithm, which comes built in to the R library `corpus`.
 
 ```{r, warning=FALSE, message=F}
 
@@ -181,7 +159,7 @@ library(corpus)
 
 text_love <- "love loving lovingly loved lover lovely love"
 text_love <- text_tokens(text_love, stemmer = "en") 
-text_love
+unlist(text_love)
 
 ```
 
@@ -191,7 +169,7 @@ As we can see, the algorithm was able to break down most of these words to the r
 
 text_fish <- "fish fisher fishing fished fishery"
 text_fish <- text_tokens(text_fish, stemmer = "en") 
-text_fish
+unlist(text_fish)
 
 ```
 
@@ -200,9 +178,12 @@ Our results are starting to look fishy, so to speak. While "fish", "fishing", an
 
 Herein lies an inherent limitation of stemming. While this approach is relatively  computationally efficient and more inclusive in terms of identifying similar words, it sometimes trims words down inappropriately, namely with overstemming or understemming.
 
-Overstemming is when too much of a word is cut off, resulting either in nonsensical stems, where the word has lost its meaning (e.g., "fisheri" above), or in words being resolved to the same stems when they shouldn't be. For example, "university", "universal", "universities", and "universe" could resolve to the stem "univers", instead of having "universal" and "universe" resolve to "univers" and "university" and "universities" resolve to "universi". 
+**Overstemming** is when too much of a word is cut off, resulting either in nonsensical stems, where the word has lost its meaning (e.g., "fisheri" above), or in words being resolved to the same stems when they shouldn't be. For example, "university", "universal", "universities", and "universe" could resolve to the stem "univers", instead of having "universal" and "universe" resolve to "univers" and "university" and "universities" resolve to "universi". 
 
-Understemming is when two words should be stemmed to the same root but are not. A common example is the words "alumnus", "alumni", and "alumnae" resolving to "alumnu", "alumni", and "alumna".
+**Understemming** is when two words should be stemmed to the same root but are not. A common example is the words "alumnus", "alumni", and "alumnae" resolving to "alumnu", "alumni", and "alumna".
+
+
+### Lemmatization
 
 The other most common text normalization approach is lemmatization. According to this helpful [article](https://nlp.stanford.edu/IR-book/html/htmledition/stemming-and-lemmatization-1.html), lemmatization "usually refers to doing things properly with the use of a vocabulary and morphological analysis of words, normally aiming to remove inflectional endings only and to return the base or dictionary form of a word, which is known as the lemma." That is to say, lemmatization ensures that the root word belongs to the language. 
 
@@ -235,9 +216,6 @@ corpus <- tm_map(corpus, lemmatize_strings)
 inspect(corpus)
 
 ```
-
---Add something here about situations where you would use stemming and lemmatization. Use cases for each? Pros and cons of each?
-
 
 ## Example: Trigrams for Heart of Darkness {.tabset .tabset-fade}
 
@@ -293,4 +271,4 @@ darkness %>%
 
 ## Conclusion
 
-As you can see, handling text data with tidytext is very simple. The big advantage of using this package is that it works with other tidyverse functions, and this framework can even be used for some analytic tasks such as sentiment analysis and topic modeling. 
+Preparing text data is often 
