@@ -1,6 +1,10 @@
 ---
-title: "Regex Explained"
-output: html_document
+title: "Regex and Stringr"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
 ---
 
 A (very) important part of natural language processing is searching for patterns of characters. While this may seem like a somewhat boring part of the process, it is usually the first task in cleaning and preparing data for natural language processing. 
@@ -11,14 +15,14 @@ In this tutorial, we will go through how regex is used in R and specifically in 
 
 `stringr` is the tidyverse solution to working with strings. That means that it plugs in well with packages like `tidytext`, `dplyr` and `tidyr`.
 
-Some stringr functions will return a single vector, which can be turned into a variable using a `mutate` function from the `dplyr` package. In my opinion, these are the most useful functions in `stringr`. They do things like return if a pattern exists, return a pattern itself, or replace a pattern with something new. While `stringr` has more functions, which you can learn more about [here](https://stringr.tidyverse.org), the below four functions make up the backbone of the package. s  
+Some stringr functions will return a single vector, which can be turned into a variable using a `mutate` function from the `dplyr` package. In my opinion, these are the most useful functions in `stringr`. They do things like return if a pattern exists, return a pattern itself, or replace a pattern with something new. While `stringr` has more functions, which you can learn more about [here](https://stringr.tidyverse.org), the below four functions make up the backbone of the package.   
 
-* `str_detect(string, pattern)` detects the presence or absence of a pattern in a string. It will return a TRUE FALSE based on if that pattern is found.
+* `str_detect(string, pattern)` detects the presence or absence of a pattern in a string. It will return a TRUE or FALSE based on if that pattern is found.
 * `str_extract(string, pattern)` extracts text corresponding to the matched pattern
 * `str_match(string, pattern)` match text according to a pattern and returns it. Functionally, it is often the same as `str_extract()` but must be used instead of `str_extract()` in specialized instances. 
 * `str_replace(string, pattern, replacement)` replaces a matched pattern and returns a character vector.
 
-**These functions all have a variant with an `_all` suffix, which will match all occurrences of a pattern in a string. Without this only the first pattern will be matched**
+**These functions all have a variant with an `_all` suffix, which will match all occurrences of a pattern in a string. Without this, only the first pattern will be matched**
 
 Lets see how these functions compare when working with data. First we will create a data.frame with a text variable with some sample text.
 
@@ -91,7 +95,7 @@ sample%>%
   mutate(period = str_extract(text, "."), # . stands for anything. It will return the first character
          character = str_extract(text, "\\w"), # \\w stands for any character
          digit = str_extract(text, "\\d"), # \\d stands for any digit
-         white_space = str_extract(text, "\\s"))%>% # \\ stands for any whitespace
+         white_space = str_extract(text, "\\s"))%>% # \\s stands for any whitespace
   kable()%>%
   kable_styling("striped")
   
