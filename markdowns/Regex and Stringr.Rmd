@@ -9,6 +9,8 @@ output:
 
 A (very) important part of natural language processing is searching for patterns of characters. While this may seem like a somewhat boring part of the process, it is usually the first task in cleaning and preparing data for natural language processing. 
 
+Regex takes a long to read and interpret, let alone write. When working through this tutorial, make sure you get general understanding of how patterns and regex works, rather than commiting yourself to learning each rule. Think of this more as a guide to refer back to when you are stuck rather than a list of rules that you need to know by heart. That said, the more you know by heart, the easier working with text data will be!
+
 In this tutorial, we will go through how regex is used in R and specifically in the `tidyverse` via the `stringr` package. 
 
 ## Pattern Matching with Stringr
@@ -131,6 +133,27 @@ sample%>%
 
 ```
 
+### Optional Characters
+
+Another important qualifier is the `?` which denotes optionality. Any character (or group of characters) that is followed by the `?` is considered optional for the pattern. Let's say we are dealing with Mr. Regex who is or is not formal depending on mood, and we want to pull his name out out from a bit of string. How would we do it so that the "Mr." is optional?
+
+```{r}
+df = data.frame(
+  text = c("Mr. Regex is proud of you",
+           "Regex is an imaginary character in this example.")
+)
+
+df%>%
+  mutate(
+    optional = str_extract(test, "M?r?\\.?\\s?Regex"),
+    optional_group = str_extract(test, "(Mr\\.\\s)?Regex")
+  )%>%
+  kable()%>%
+  kable_styling("striped")
+```
+
+We have the choice of following each optional character with a `?` or putting all the optional characters in a group and marking them all as optional. We will cover groups more below.
+
 ## Advanced Pattern Matching in Regex
 
 Now that you understand how to use regex to match basic patterns with some simple tricks such as anchors and metacharacters, we will introduce some more advanced concepts. These should serve as a building block for allowing you to complete more advanced tasks like pulling file names or phone numbers out of long strings of text.
@@ -178,7 +201,6 @@ characters%>%
   mutate(match = unlist(str_match_all(text, "(.*?)\\.pdf$"))[2])%>%
   kable()%>%
   kable_styling("striped")
-
 
 ```
 
@@ -251,3 +273,61 @@ text = "Anywho, I, who am your very cute crush, think you are very cute yourself
 str_extract(text, "\\d{3}-\\d{4}")
 ```
 
+## Example: Find the Phone Numbers {.tabset .tabset-fade}
+
+A common task in regex is to pull out certain types of text. Let's say that you are looking to do fraud detection on a dataset of texts. Oftentimes scammers will put a website or a different phone number within a text for their victims to call. For this example, use the dataset I will create below to pull all the phone numbers from the texts marked as fraudulent.
+
+```{r}
+# run these lines to get your dataset!
+
+dataset = data.frame(
+  fraud = c("yes", "no", "no", "yes"),
+  message = c(
+      "Want to make $35,000 working from home? Call (804) 675-9999",
+      "Hey its your crush. I know I am texting you but in case you dont have my number its (888) 646-8888",
+      "Its your mom, doing mom things",
+      "This is microsoft support, you have very bad virus call us at 888-999-1000"
+      )
+)
+
+
+```
+
+### Problem
+
+This problem will test your knowledge of a few major concepts from above. 
+
+- Don't forget to filter out the good texts
+- Remember to look up special metacharacters
+- The phone numbers come in different formats, you can use optionality to handle this
+
+### Solution
+
+**Step 1: Filter down to fraud texts**
+
+```{r}
+
+dataset = dataset%>%
+  filter(fraud == "yes")
+
+```
+
+**Step 2: Add the regex**
+
+*As a sidenote, regex is notoriously hard to read. I am going to try and break this up a bit, but it may take a few reads to follow whats happening here.*
+
+Next we need to pull all the phone numbers. Let's base our pattern off the phone number example above. Something like `"\\d{3}-\\d{3}-\\d{4}`, which would be able to match 888-999-1000. 
+
+The other phone number is in another format. We will need to use optionality to mark the brackets as optional, leaving us with a final pattern like so `"\\(?\\d{3}(\\)\\s)?-?\\d{3}-\\d{4}"`
+
+Let's see it in action:
+
+```{r}
+
+dataset%>%
+  filter(fraud == "yes")%>%
+  mutate(bad_nums = str_extract(message, "\\(?\\d{3}(\\)\\s)?-?\\d{3}-\\d{4}"))%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
