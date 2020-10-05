@@ -12,7 +12,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Data pre-processing
+## Text Normalization
 
 Text data pre-processing, or normalization, is the process of converting text data into a more machine-readable form before analyzing it. This normalization entails a number of processes, which can include tokenization, stop words removal, and text normalization, most commonly in the form of stemming and lemmatization. 
 
@@ -95,47 +95,12 @@ As you might guess, what exactly constitutes a stop word is somewhat subjective.
 So then, we have a list of words that we will filter out contained in the `stop_words` dataset. If we are working with unigrams than the job is easy. We just need to filter out unigrams, so they do not contain any stop words, like so:
 
 ```{r warning = FALSE, message = FALSE}
-unigrams_filtered = unigrams %>%
+
+unigrams_cleaned = unigrams %>%
   filter(!word %in% stop_words$word)
-```
-
-But if we have n-grams where n is greater than one, we have an issue! The stop word list is just single words. To handle this, we are going to be basing our methodology for removing stop words on [tidytextmining](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). It's pretty simple and somewhat scalable.
-
-First split the ngrams into their own columns. In this case, since its bigrams, the columns will be "word1" and "word2"
-
-```{r warning = FALSE, message = FALSE}
-
-bigrams_separated <- bigrams %>%
-  separate(bigram, c("word1", "word2"), sep = " ")
 
 ```
 
-Next for each "word" column, filter out all the stop words
-
-```{r warning = FALSE, message = FALSE}
-
-bigrams_filtered <- bigrams_separated %>%
-  filter(!word1 %in% stop_words$word) %>%
-  filter(!word2 %in% stop_words$word)
-
-```
-
-Finally, concatinate all the columns back together with `unite()`
-
-```{r warning = FALSE, message = FALSE}
-
-bigrams_united <- bigrams_filtered %>%
-  unite(bigram, word1, word2, sep = " ") 
-
-bigrams_united%>%
-  slice(1:5)%>%
-  kable()%>%
-  kable_styling("striped")
-
-
-```
-
-And there you have it! A clean dataframe of bigrams without stop words the `tidytext` way.
 
 ## Stemming and Lemmatization
 
@@ -151,15 +116,13 @@ The two most common ways of text normalization -- breaking words down to their c
 
 **Stemming** is the process of reducing inflection in words to their "root" forms through the use of an algorithm. Put simply, an algorithm looks for patterns that typically indicates inflection like "ed" or "ing" and removes it in order to reduce the word to it's stem or root.
 
-While there are a number of stemming algorithms, we'll take a look at the results of the Snowball stemming algorithm, which comes built in to the R library `corpus`.
+While there are a number of stemming algorithms, we'll take a look at the results of the Snowball stemming algorithm, which comes built in to the R library `SnowballC`.
 
 ```{r, warning=FALSE, message=F}
 
-library(corpus)
+library(SnowballC)
 
-text_love <- "love loving lovingly loved lover lovely love"
-text_love <- text_tokens(text_love, stemmer = "en") 
-unlist(text_love)
+wordStem(c("love", "loving", "lovingly", "loved", "lover", "lovely", "love"))
 
 ```
 
@@ -167,9 +130,7 @@ As we can see, the algorithm was able to break down most of these words to the r
 
 ```{r, warning=FALSE, message=F}
 
-text_fish <- "fish fisher fishing fished fishery"
-text_fish <- text_tokens(text_fish, stemmer = "en") 
-unlist(text_fish)
+wordStem(c("fish", "fisher", "fishing", "fished", "fishery"))
 
 ```
 
@@ -182,6 +143,20 @@ Herein lies an inherent limitation of stemming. While this approach is relativel
 
 **Understemming** is when two words should be stemmed to the same root but are not. A common example is the words "alumnus", "alumni", and "alumnae" resolving to "alumnu", "alumni", and "alumna".
 
+Stemming in tidytext is quite easy. Let's go ahead and stem the unigrams that we pulled earlier. Combine the `mutate()` function with the `wordStem()` function to overwrite the word column with the newly stemmed values. 
+
+```{r, warning=FALSE, message=F}
+
+unigrams_cleaned = unigrams %>%
+  filter(!word %in% stop_words$word)%>%
+  mutate(word = wordStem(word))
+
+unigrams_cleaned%>%
+  slice(10:15)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
 
 ### Lemmatization
 
@@ -196,13 +171,26 @@ There are a few ways we can lemmatize in R. First we'll check out an example usi
 ```{r, warning=FALSE, message=F}
 
 library(textstem)
-vector <- c("eat", "ate", "eaten", "eating", "eaten")
-lemmatize_words(vector)
+lemmatize_words(c("eat", "ate", "eaten", "eating", "eaten"))
 
 ```
 
-Notice that the words under examination are in a vector. If we want to perform lemmatization on a corpus, we'll need to use the `tm` library.
+As you can see the root word for our entire vector of root words seems much more reasonable now! Lets repeat the example from stemming with lemmatization. The only thing we need to change is the `wordStem()` function to `lemmatize_words()`. 
 
+```{r, warning=FALSE, message=F}
+
+unigrams_cleaned = unigrams %>%
+  filter(!word %in% stop_words$word)%>%
+  mutate(word = lemmatize_words(word))
+
+unigrams_cleaned%>%
+  slice(10:15)%>%
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+Notice that thus far the words under examination are in a vector. If we want to perform lemmatization on a corpus, we'll need to use the `tm` library.
 
 ```{r, warning=FALSE, message=F}
 
@@ -216,6 +204,54 @@ corpus <- tm_map(corpus, lemmatize_strings)
 inspect(corpus)
 
 ```
+
+## Cleaning n-grams
+
+So far, when removing stop words and performing stemming and lemmatization, we have been working with unigrams instead of bigrams or trigrams. The strategies thus far only work with unigrams because all the methods require a vector of single words to work, rather than a vector of multiple words. 
+
+For example, you cannot filter out the word "the" from the text string "the dog" because "the" does not equal "the dog". How can we get around this? 
+
+The simplest method is to perform all your cleaning on unigrams, recreate the original text, and then unnest the tokens into however many n-grams you need. 
+
+Let's walk through an example. In our example, we are going to have two text strings that we need to clean and then eventually tokenize into bigrams.
+
+```{r, warning=FALSE, message=F}
+
+df = data.frame(
+  example_num = c(1, 2),
+  text = c("Here are two examples. I wrote them down for you. In each example you will find a lot of stop words", 
+                    "Another thing you might find is inflected words or words that could be stemmed")
+  )
+
+
+```
+
+We are going to remove the stop words and lemmatize next. 
+
+```{r, warning=FALSE, message=F}
+
+clean = df%>%
+  unnest_tokens(word, text, token = "ngrams", n = 1)%>%
+  filter(!word %in% stop_words$word)%>% # removing stop words
+  mutate(word = lemmatize_words(word))
+
+```
+
+Finally, using `group_by` to retain the example number and `summarise` plus `paste` to collapse the text back into a single line, we will recreate the orginal text, but now cleaned. At this point, we can unnest the lemmatized and cleaned words into however many ngrams that we want without having to leave the tidytext format. 
+
+```{r, warning=FALSE, message=F}
+
+back_again = clean%>%
+  group_by(example_num)%>%
+  summarise(text = paste(word, collapse = " "))
+
+df2 = back_again %>% unnest_tokens(word, text, token = "ngrams", n = 2)
+
+```
+
+However, there is a bit of an asterisk here. If you remove stop words in this way, once you unnest the tokens, you will be creating trigrams and bigrams from the *cleaned* words rather than the original words, which aren't techincally consecutive. 
+
+If this is a problem for your analysis. [Follow tidytext's guide to removing stop words](https://www.tidytextmining.com/ngrams.html#counting-and-filtering-n-grams). Using this method for lemmatization or stemming should not be a problem. 
 
 ## Example: Trigrams for Heart of Darkness {.tabset .tabset-fade}
 
@@ -240,35 +276,49 @@ darkness = gutenberg_download("219")
 
 ```
 
-**Step 2: Tokenize the Dataset**
+**Step 2: Tokenize into Unigrams and Clean**
 ```{r, warning = F, message=F}
 
 darkness %>%
-  unnest_tokens(trigram, text, token = "ngrams", n = 3)%>%
-  # below is purely for visuzliations purposes
+  unnest_tokens(word, text, token = "ngrams", n = 1)%>%
+  filter(!word %in% stop_words$word)%>% # removing stop words
+  mutate(word = lemmatize_words(word))%>%
+  # just for visualization
   slice(1:5)%>%
   kable()%>%
   kable_styling("striped")
 
 ```
 
-**Step 3: Remove the Stopwords**
+**Step 3: Group Back into the Text**
 ```{r, warning = F, message=F}
 
 darkness %>%
-  unnest_tokens(trigram, text, token = "ngrams", n = 3)%>%
-  separate(trigram, c("word1", "word2", "word3"), sep = " ")%>%
-  filter(!word1 %in% stop_words$word) %>%
-  filter(!word2 %in% stop_words$word)%>%
-  filter(!word3 %in% stop_words$word)%>%
-  unite(trigram, word1, word2, word3, sep = " ")%>%
+  unnest_tokens(word, text, token = "ngrams", n = 1)%>%
+  filter(!word %in% stop_words$word)%>% # removing stop words
+  mutate(word = lemmatize_words(word))%>% 
+  group_by(gutenberg_id)%>%
+  summarise(text = paste(word, collapse = " "))%>%
+  # below is purely for visuzliations purposes
+  mutate(text = substr(text, 1, 50))%>% # first 50 characters otherwise we will display the whole book
+  kable()%>%
+  kable_styling("striped")
+
+```
+
+**Step 4: Unnest into Trigrams**
+```{r, warning = F, message=F}
+
+darkness %>%
+  unnest_tokens(word, text, token = "ngrams", n = 1)%>%
+  filter(!word %in% stop_words$word)%>% # removing stop words
+  mutate(word = lemmatize_words(word))%>% 
+  group_by(gutenberg_id)%>%
+  summarise(text = paste(word, collapse = " "))%>%
+  unnest_tokens(word, text, token = "ngrams", n = 3)%>%
   # below is purely for visuzliations purposes
   slice(1:5)%>%
   kable()%>%
   kable_styling("striped")
 
 ```
-
-## Conclusion
-
-Preparing text data is often 
