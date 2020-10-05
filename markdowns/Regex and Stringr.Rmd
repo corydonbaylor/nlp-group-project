@@ -145,8 +145,8 @@ df = data.frame(
 
 df%>%
   mutate(
-    optional = str_extract(test, "M?r?\\.?\\s?Regex"),
-    optional_group = str_extract(test, "(Mr\\.\\s)?Regex")
+    optional = str_extract(text, "M?r?\\.?\\s?Regex"),
+    optional_group = str_extract(text, "(Mr\\.\\s)?Regex")
   )%>%
   kable()%>%
   kable_styling("striped")
