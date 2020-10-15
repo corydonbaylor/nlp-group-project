@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## TF-IDF
 
-So far, we have looked at simply counting words and displaying this information in interesting ways. Next we will try to contextualize this information by observing how frequent words are in a document in comparison to other words.
+So far, we have looked at simply counting words and displaying this information in interesting ways. Next we will try to contextualize this information by observing how frequently words are in a document in comparison to other words.
 
 TF-IDF, or Term Frequency and Inverse Document Frequency, is a way to numerically give importance to a word or phrase in a given text document relative to a collection of text documents. 
 
