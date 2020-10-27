@@ -1,5 +1,5 @@
 ---
-title: "TF-IDF Tutorial (Term Frequency-Inverse Document Frequency)"
+title: "Term Frequency-Inverse Document Frequency - TF-IDF"
 author: "Team Hanley NLP Working Group"
 output:
   html_document:
@@ -18,7 +18,7 @@ So far, we have looked at simply counting words and displaying this information 
 
 TF-IDF, or Term Frequency and Inverse Document Frequency, is a way to numerically give importance to a word or phrase in a given text document relative to a collection of text documents. 
 
-In this example, we will examine how important a word is in a chapter of Metamorphosis in comparison to the entire novel. Our dataframe 'meta' contains the text from Metamorphosis; however, there is no column designating chapters in the novel. By looking through the 'meta' dataframe, we can see that there are chapter divides at rows 640 and 1296. First we need to download Metamorphosis by Kafka using 'gutenbergr'. Let's start by adding a chapter column to our dataframe, dividing Metamorphosis into its three chapters.
+In this example, we will examine how important a word is in a chapter of Metamorphosis in comparison to the entire novel. Our dataframe 'meta' contains the text from Metamorphosis; however, there is no column designating chapters in the novel. By looking through the 'meta' dataframe, we can see that there are chapter divides at rows 640 and 1296. First we need to download Metamorphosis using 'gutenbergr'. Then we will add a chapter column to our dataframe, dividing Metamorphosis into its three chapters.
 
 ```{r warning=FALSE, message=FALSE}
 library(gutenbergr)
@@ -45,7 +45,7 @@ meta <- meta[,2:3]
 
 ### Term Frequency (tf)
 
-First, we need to create a dataframe that breaks down our text into one word per row using `unnest_tokens()`. Here, we can count how many times words occur in each chapter. This is our term frequency (tf).
+First, we need to create a dataframe that breaks down our text into one word per row using `unnest_tokens()`. Here, we can count how many times words occur in each chapter. **This is our term frequency (tf)**.
 
 ```{r warning=FALSE, message=FALSE}
 book_words <- meta%>%
@@ -91,11 +91,18 @@ idf(word) = ln(total number of documents / number of documents containing word)
 
 It may have been a minute since you took a math class, so let's take a step back and think about what that natural log (ln) is doing there. The [natural log (ln)](https://betterexplained.com/articles/demystifying-the-natural-logarithm-ln/) can be thought of as the amount of time it takes something to grow exponentially from one. So ln(1) will be 0, since it takes no time to get to where you currently are. 
 
-In other words, if a word appears in all three documents it will have an IDF of 0. The more common the word across documents, the more it is discounted. This is in fact a good method to find context-specific stop words in a collection of documents. Words that appear frequently in every document (and have an IDF score of 0) may be good candidates for stop words.  
+In other words, if a word appears in all three documents it will have an IDF of 0 because the ln(3/3) is 0. Let's run through some scenarios assuming there are 100 documents:
+
+- If a word appears in 1 document then ln(100/1) will be equal to 4.6
+- If a word appears in 30 documents then ln(100/30) will be equal to 1.2
+- If a word appears in 75 documents then ln(100/75) will be equal to .28
+- If a word appears in every document then ln(100/100) will be equal to 0
+
+The more common the word across documents, the more it is discounted, and the more uncommon a word across documents, the more it is boosted. This is in fact a good method to find context-specific stop words in a collection of documents. Words that appear frequently in every document (and have an IDF score of 0) may be good candidates for stop words.  
 
 ### TF-IDF
 
-Because you multiply the term frequency and the inverse document frequency together, in practice, this means that the TF **boosts** common words within a document, and the IDF **discounts** words that are common across documents.  
+Because you multiply the term frequency and the inverse document frequency together, in practice, this means that the TF **boosts** frequent words within a document, and the IDF **discounts** words that are common across documents.  
 
 Of course in R we can do all of this in one function. The `bind_tf_idf()` function gets the TF, IDF, and TF-IDF scores for each word in our dataset.
 
@@ -127,6 +134,63 @@ The only way to know for sure would be to read the book, but this is of course m
 
 (You should still read the book -- it's quite good!)
 
+## Problem 1: Discovering the Contents of Wikipedia Articles {.tabset .tabset-fade}
+
+### Problem
+
+Using the getwiki package, pull the Wikipedia articles for France, England, Russia, and Germany, and find the top 10 words by IF-IDF score for each article. Display this similarly to what we did for Metamorphosis 
+
+### Solution
+
+Step 1: Get the data using getwiki and unnest it using tidytext
+
+```{r}
+
+library(getwiki)
+
+euro = get_wiki(c("France", "Germany", "England", "Russia"))%>%
+  unnest_tokens(word, content) 
+  
+```
+
+Step 2: Calculate the document term counts or how many times a term appears in a document
+
+```{r}
+
+euro = euro %>%
+  group_by(titles, word)%>%
+  summarise(n = n())%>%
+  arrange(desc(n))
+
+```
+
+Step 3: Calculate the TF-IDF Score
+
+```{r}
+final = euro %>%
+  bind_tf_idf(word, titles, n)
+
+
+```
+
+Step 4: Create your plot!
+
+```{r, warning=FALSE, message=FALSE}
+
+final %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  group_by(titles) %>% 
+  slice(1:10) %>% 
+  ungroup() %>%
+  ggplot(aes(word, tf_idf, fill = titles)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~titles, ncol = 2, scales = "free") +
+  coord_flip()+
+  theme_classic()
+
+```
 <br>
 <br>
 

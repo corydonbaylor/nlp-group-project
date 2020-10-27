@@ -1,0 +1,107 @@
+---
+title: "Wikipedia Data with getwiki"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting getwiki
+
+Getting Wikipedia data into R can be a breeze with `getwiki`. `getwiki` is the Wikipedia api wrapper for R that you definitely knew you needed if you have ever tried to gather text data for R before. This package imports Wikipedia articles into R quickly and easily and will return articles in a format that plays nice with `tidytext`. Previously, the easiest way to import the text of a Wikipedia article was to highlight everything and then copy paste it into a character vector. 
+
+This has the obvious disadvantages of formatting issues and being a manual, tedious process. With `getwiki` you can simply access Wikipedia using Wikipedia's API. 
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+In order to install `getwiki`, you will `devtools` which is a package for creating packages. It is also a package for installing packages, and you will be using it to install `getwiki`. You may notice that this package is on my github page. That is because I wrote this package. I am including it in this course not just in an act of shameless self promotion but also because I truly believe it is the best package to get Wikipedia data in R. As of writing, there is not another package that accomplishes this exact task.  
+
+```{r eval=FALSE}
+# download from github
+devtools::install_github("corydonbaylor/getwiki")
+# load into R
+library(getwiki)
+```
+
+`getwiki` has three main functions to import text data: `get_wiki`, `search_wiki` and `random_wiki`. For the purpose of this tutorial, we will just focus on the first two functions. `random_wiki` just returns the text of a random wikipedia article.  
+
+## Use get_wiki to Import the Text of a Wikipedia Article
+
+The first function, `get_wiki`, will return the matched Wikipedia article based on titles. So if you were to search for France then the function would return the Wikipedia article for France as a string. I am not going to include the results of this function as the Wikipedia page for France is quite long. After downloading the package, run the example and take a look!
+
+```{r getwiki, eval=FALSE}
+# will return a character string with the contents of the wikipedia page on France. 
+get_wiki("France")
+
+```
+
+If you want to search for more than one article at a time you can! `get_wiki()` will return multiple articles in a data.frame with one column being the title of the article and the other being the content of the article. Just put the needed items in a character vector. The big advantage of this data.frame format is that it will work well with `tidytext` which we will learn about in the next set of lessons. 
+
+```{r getwiki_multiple, eval=FALSE}
+# will return a character string with the contents of the wikipedia page on France. 
+get_wiki(c("France", "United States"))
+
+```
+
+It is possible, though very unlikely, that your results may be erroneously missing something. `get_wiki` will try to clean out all html tags returned by the API using regex. However, this can be unreliable as there is no simple regex pattern to only match html tags. If you would like to skip this, set `clean = FALSE`. In general, I would recommend leaving in the clean option in place as it is very unlikely that you will actually lose any data. But since it is possible, the option is there. Take a look at how the data looks without the clean option selected.
+
+```{r getwiki_clean, eval=FALSE}
+# this will keep the html tags from the API results
+get_wiki("France", clean = FALSE)
+
+```
+
+## Use search_wiki to Return the Top Twenty Results of a Search Term
+
+Sometimes you may not be exactly sure what article you are looking for. `search_wiki` will return the top twenty matching articles based on a search term. So for example if you were to search for articles related to the United States, you will retun a data.frame with a column for the returned titles and a column with the content of those articles. 
+
+```{r search_wiki, eval=FALSE}
+# this will keep the html tags from the API results
+search_wiki("United States")
+
+```
+
+**Note that the content article only has the text of the first paragraph of the article.** If you want to return the full text of those articles you will need to use `get_wiki`. This can be easily accomplished in two lines.
+
+```{r search_wiki_big, eval=FALSE}
+# this will keep the html tags from the API results
+us = search_wiki("United States")
+
+# this will return the full text of the wikipedia articles
+big_us = get_wiki(us$titles)
+
+```
+
+## Example 1: Pull Twenty Articles about the Soviet Union {.tabset .tabset-fade} 
+
+### Problem
+
+Pull twenty different articles about the Soviet Union. For extract credit, do this in only two lines. 
+
+**Hints**
+
+- This should be an exceptionally easy question. Just follow the above example with the United States
+
+### Solution
+
+Let's plug and play!
+
+```{r question, eval=FALSE}
+# this will keep the html tags from the API results
+ussr = search_wiki("Soviet Union")
+
+# this will return the full text of the wikipedia articles
+big_ussr = get_wiki(ussr$titles)
+
+```
