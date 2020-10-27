@@ -1,6 +1,5 @@
 ---
 title: "Term Frequency-Inverse Document Frequency - TF-IDF"
-author: "Team Hanley NLP Working Group"
 output:
   html_document:
     toc: TRUE
@@ -43,7 +42,7 @@ meta$chapter[1296:nrow(meta)] = 3
 meta <- meta[,2:3]
 ```
 
-### Term Frequency (tf)
+## Term Frequency (tf)
 
 First, we need to create a dataframe that breaks down our text into one word per row using `unnest_tokens()`. Here, we can count how many times words occur in each chapter. **This is our term frequency (tf)**.
 
@@ -81,7 +80,7 @@ meta%>%
 
 ```
 
-### Inverse Document Frequency (idf)
+## Inverse Document Frequency (idf)
 
 Where the term frequncy shows how common a word is the inverse document frequncy discounts words for being common across documents. 
 
@@ -137,12 +136,14 @@ The only way to know for sure would be to read the book, but this is of course m
 ## Problem 1: Discovering the Contents of Wikipedia Articles {.tabset .tabset-fade}
 
 ### Problem
-
+<br>
 Using the getwiki package, pull the Wikipedia articles for France, England, Russia, and Germany, and find the top 10 words by IF-IDF score for each article. Display this similarly to what we did for Metamorphosis 
+<br>
+<br>
 
 ### Solution
 
-Step 1: Get the data using getwiki and unnest it using tidytext
+**Step 1: Get the data using getwiki and unnest it using tidytext**
 
 ```{r}
 
@@ -153,7 +154,7 @@ euro = get_wiki(c("France", "Germany", "England", "Russia"))%>%
   
 ```
 
-Step 2: Calculate the document term counts or how many times a term appears in a document
+**Step 2: Calculate the document term counts or how many times a term appears in a document**
 
 ```{r}
 
@@ -164,7 +165,7 @@ euro = euro %>%
 
 ```
 
-Step 3: Calculate the TF-IDF Score
+**Step 3: Calculate the TF-IDF Score**
 
 ```{r}
 final = euro %>%
@@ -173,7 +174,7 @@ final = euro %>%
 
 ```
 
-Step 4: Create your plot!
+**Step 4: Create your plot!**
 
 ```{r, warning=FALSE, message=FALSE}
 
@@ -191,6 +192,7 @@ final %>%
   theme_classic()
 
 ```
+
 <br>
 <br>
 
