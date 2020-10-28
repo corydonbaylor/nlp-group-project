@@ -1,0 +1,54 @@
+---
+title: "Preparing Text Data with tm"
+author: "Team Hanley NLP Working Group"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Converting into a Corpus
+
+We are going to import the Wikipedia pages for eight different European countries for the text data to work with in this example. The main structure for managing text data in `tm` is the corpus, which is a somewhat abstract data type but can be thought of as akin to a list for simplicity's sake. 
+
+To convert data into a corpus, we will need to first import the required wikipedia articles using `get_wiki`. Next, because `tm` is a little particular about converting from data.frames, we will need to ensure that the column representing the id of the document is called "doc_id" and the column representing the text of the article is called "text". You can use a combination of the `VCorpus` and `DataframeSource()` functions to convert to a corpus from here. 
+
+```{r warning=FALSE, message=FALSE}
+
+library(tm)
+library(getwiki)
+
+europe = get_wiki(c("spain", "portugal", "france", "england", "germany", "poland", "russia", "italy"))
+
+names(europe) = c("doc_id", "text")
+
+europe = VCorpus(DataframeSource(europe))
+
+europe
+```
+
+You don't have to create a corpus using a dataframe however. Using the `getSources` function, we can see all the different ways we can import data. 
+
+```{r}
+
+getSources()
+
+```
+
+Let's try importing from a vector instead. Just for the *fun* of it all. 
+
+```{r}
+
+text = c("hey look a string", "i hope i become a document in a corpus one day", "its any string in a vector's dream")
+
+VCorpus(VectorSource(text))
+
+```
+
+As you can see, the above example produces three different documents, which are those three strings, and puts them into a corpus. Very nice!
+
