@@ -62,5 +62,65 @@ wordcloud(tokens$word, max.words = 75, colors=brewer.pal(6, "Dark2"))
 
 ```
 
+## Practice Problems
+
+### Problem 1
+
+Load the text from Hamlet and create a bar chart depicting the 10 most frequent words from the text. 
+
+** Hints **
+The gutenberg ID for Hamlet is 1787.
+
+### Solution
+
+Use gutenberg_download to download the text from Hamlet by inputting the appropriate ID for Hamlet (1787). Then use unnest_tokens to tokenize the text by individual word (n=1).
+
+```{r warning=FALSE, message=FALSE}
+library(gutenbergr)
+library(wordcloud)
+library(ggplot2)
+library(tidytext)
+library(dplyr)
+library(kableExtra)
+
+meta = gutenberg_download("1787") 
+
+tokens = meta %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) 
+
+word_count = tokens%>%
+  group_by(word)%>%
+  summarise(count = n())%>%
+  arrange(desc(count))%>%
+  slice(1:10)
+
+ggplot(data = word_count)+
+  geom_bar(aes(x = word, y = count), stat = "identity",  fill = "#6699cc")+
+  theme_classic()
+
+
+```
+
+### Problem 2
+
+Create a Wordcloud to display the most common words in Hamlet.
+
+### Solution
+
+
+```{r warning=FALSE, message=FALSE}
+wordcloud(tokens$word, max.words = 75, colors=brewer.pal(6, "Dark2"))
+
+```
+
+## Conclusion
+
+Using the unnest_tokens() function, you can easily tokenize (or break down) text data into single words, two consecutive words, three consecutive words, and so forth by setting n equal to the number of words you would like your data broken into. From here, it is fairly easy to group by you words, bigrams, trigrams, etc. and create a count of those text chunks across your entire dataset. This allows you to look at the frequency of your tokens (in this case words) to further analyze your data. 
+
+As you can see by looking at the bar chart or Wordcloud in the above Hamlet example, words like "Ham", "king", and "lord" are among the most frequent words in the play. Intuitively, this makes sense because since Hamlet is written as a play in a format where character names are followed by thier dialogue, we can assume that "Hamlet" is abbreviated to "Ham" prior to any dialogue where the character, "Hamlet"" is speaking. Further, Hamlet is a story involving many kings, lords, and queens, so it makes sense that these would be among the most frequent terms.
+
+Visualizations like bar charts and word clouds make it easier to digest the information you are gathering, and only require a few lines of code after tokenizing and cleaning your data!
+
 <br>
 <br>
