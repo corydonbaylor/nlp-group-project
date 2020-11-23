@@ -72,7 +72,7 @@ Let's look at some Tom Cruise tweets and see how we can apply sentiment analysis
 library(wordcloud)
 library(RColorBrewer)
 library(rtweet)
-source("../keys.R")
+library(tidytext)
 
 twitter_token <- create_token(
   app = twitter_app,
@@ -200,7 +200,7 @@ We will use the `%/%` operator to perform this binning. This operator performs i
 
 sentbars = book_words %>%
   inner_join(get_sentiments("bing"))%>%
-  # %/% performs interger divison, rounding down to the nearest whole number
+  # %/% performs integer divison, rounding down to the nearest whole number
   mutate(index = linenumber %/% 25)%>% 
   group_by(index, sentiment)%>%
   summarise(count = n())%>%
@@ -232,6 +232,68 @@ ggplot(data = sentbars) +
   scale_fill_manual(values = c("darkred", "darkgreen"))+
   labs(title = "The Metamorphosis of Sentiment",
        x = "Change over Time (Each Bar is 25 Lines of Text)",
+       y = "Sentiment Score")
+
+
+```
+
+
+
+
+## Problem: Analyzing the Sentiments in Wuthering Heights {.tabset .tabset-fade}
+
+### Problem
+
+Download Emily Brontë's Wuthering Heights and create a bar chart illustrating how sentiments shift throughout the course of the text.
+
+**Hints**
+
+* Use Project Gutenberg to download the text.
+* Join on a sentiment lexicon like 'bing' before visualizing your data.
+
+
+### Solution
+
+```{r, warning = F, message=F}
+
+library(gutenbergr)
+library(tidyr)
+library(ggplot2)
+
+wuther = gutenberg_download("768")
+
+book_words <- wuther%>%
+  mutate(linenumber = row_number())%>%
+  unnest_tokens(word, text)
+
+sentbars = book_words %>%
+  inner_join(get_sentiments("bing"))%>%
+  # %/% performs integer divison, rounding down to the nearest whole number
+  mutate(index = linenumber %/% 50)%>% 
+  group_by(index, sentiment)%>%
+  summarise(count = n())%>%
+  spread(sentiment, count, fill = 0) %>%
+  mutate(sentiment = positive - negative,
+         sentiment_group = ifelse(sentiment > 0, "pos", "neg"))%>%
+  ungroup()
+
+sentbars%>%
+  slice(1:3)%>%
+  kable()%>%
+  kable_styling("striped")
+
+ggplot(data = sentbars) +
+  geom_bar(aes(x = index, y = sentiment, fill = sentiment_group), stat = "identity")+
+  theme_classic()+
+  theme(
+    legend.position = "none",
+    axis.ticks.x = element_blank(),
+    axis.line.x = element_blank(),
+    axis.text.x = element_blank()
+  )+
+  scale_fill_manual(values = c("darkred", "darkgreen"))+
+  labs(title = "How Wuthered Are These Heights",
+       x = "Change over Time",
        y = "Sentiment Score")
 
 
