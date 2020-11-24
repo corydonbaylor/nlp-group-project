@@ -72,7 +72,7 @@ Let's look at some Tom Cruise tweets and see how we can apply sentiment analysis
 library(wordcloud)
 library(RColorBrewer)
 library(rtweet)
-library(tidytext)
+source("../../keys.R")
 
 twitter_token <- create_token(
   app = twitter_app,
