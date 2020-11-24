@@ -105,7 +105,7 @@ Now that we have an idea of how tm_map works, let's go a little crazy and strip 
 
 ```{r}
 
-europe_clean = tm_map(europe, stripWhitespace)
+europe_clean = tm_map(europe_clean, stripWhitespace)
 europe_clean = tm_map(europe_clean, stemDocument)
 
 substr(europe_clean[[1]]$content, 1, 500)
@@ -127,7 +127,7 @@ You may be looking at how we did that text replacement with a bit of confusion, 
 
 ## Using Document Term Matrix
 
-A document term matrix or term document matrix is a way of representing words as a table. The most simple implementation of this will have words as columns, the documents as rows, and if there is a presence of that word in the document as a 1 or 0. In `tm`, the values represent the number of times a word appears in a document. Creating a document term matrix is quite easy in `tm`. 
+A document term matrix or term document matrix is a way of representing words as a table. The most simple implementation of this will have words as columns, the documents as rows, and if there is a presence of that word in that document, the cell will have a value of 1 or 0. In `tm`, the values represent the number of times a word appears in a document. Creating a document term matrix is quite easy in `tm`. 
 
 ```{r}
 
@@ -137,4 +137,26 @@ inspect(dtm)
 
 ```
 
-Document term matrixes are not the most efficient way to store data. Often times they are quite sparse, meaning that most values in the matrix are 0. There are some interesting ways to represent sparse matrixes 
+Document term matrixes are not the most efficient way to store data. Often times they are quite sparse, meaning that most values in the matrix are 0. [There are some interesting ways to represent sparse matrixes more compactly](https://www.geeksforgeeks.org/sparse-matrix-representation/), but that is outside of the scope of this tutorial.
+
+### Operations of Documnet-Term Matrixes
+
+Byeond the outside packages that require document term matrixes, `tm` also provides some useful helper functions to apply to dtm objects.
+
+**Find Frequent Terms**
+Find all terms that appear at least **x** number of times, in this case 300 times. 
+
+```{r}
+
+findFreqTerms(dtm, 300)
+
+```
+
+**Find Word Associations**
+Find all terms that correlate with a given term. You can also set the percent correlation. 
+
+```{r}
+
+findAssocs(dtm, "king", .8)
+```
+
