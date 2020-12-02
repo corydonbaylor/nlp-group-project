@@ -1,0 +1,162 @@
+---
+title: "Preparing Text Data with tm"
+author: "Team Hanley NLP Working Group"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Creating a Corpus
+
+We are going to import the Wikipedia pages for eight different European countries for the text data to work with in this example. The main structure for managing text data in `tm` is the corpus, which is a somewhat abstract data type but can be thought of as akin to a list for simplicity's sake. 
+
+To convert data into a corpus, we will need to first import the required wikipedia articles using `get_wiki`. Next, because `tm` is a little particular about converting from data.frames, we will need to ensure that the column representing the id of the document is called "doc_id" and the column representing the text of the article is called "text". You can use a combination of the `VCorpus` and `DataframeSource()` functions to convert to a corpus from here. 
+
+```{r warning=FALSE, message=FALSE}
+
+library(tm)
+library(getwiki)
+
+europe = get_wiki(c("spain", "portugal", "france", "england", "germany", "poland", "russia", "italy"))
+
+names(europe) = c("doc_id", "text")
+
+europe = VCorpus(DataframeSource(europe))
+
+europe
+```
+
+You don't have to create a corpus using a dataframe however. Using the `getSources` function, we can see all the different ways we can import data. 
+
+```{r}
+
+getSources()
+
+```
+
+Let's try importing from a vector instead. Just for the *fun* of it all. 
+
+```{r}
+
+text = c("hey look a string", "i hope i become a document in a corpus one day", "its any string in a vector's dream")
+
+VCorpus(VectorSource(text))
+
+```
+
+As you can see, the above example produces three different documents, which are those three strings, and puts them into a corpus. Very nice!
+
+## Inspecting a Corpus
+
+Earlier we mentioned that a corpus is somewhat similar to a list. This is still the case when inspecting items in your corpus. You can use either `print()` or `inspect()` to view details about your corpus. Print will show us the same info as we saw above. Inspect will give us a little bit more metadata about the corpus, including how many characters are in each document. 
+
+We are going to inspect the first two elements of the corpus like so below:
+
+```{r}
+
+inspect(europe[1:2])
+
+```
+
+You will notice that each element of a corpus can be access through double brackets. So if you wanted to see the first document in your corpus, you would do the following:
+
+```{r}
+
+europe[[1]]
+
+```
+
+Here's where I think `tm` can be a little unintuitive. To access the actual content of the document you will need to first access the document itself using the double brackets, then access its content using a $. Like so:
+
+```{r}
+
+substr(europe[[1]]$content, 1, 500)
+
+```
+
+You'll notice that I took a substr of the content, so that I only printed the first 500 characters rather than the whole wikipedia article. 
+
+## Data Cleaning
+
+I think that `tm` really shines when performing data cleaning and data transformation tasks. The primary function for content transformations is acheived using `tm_map`. `tm_map` may work a little counterintuitively if you are well versed in R, especially the tidyverse. The first arguement is a corpus. The second argument is a function to be applied to that corpus. Any arguements after that are arguments to be applied to the function. Wait what? Let me explain.  
+
+Let's look at how we remove stop words. 
+
+```{r}
+
+europe_clean = tm_map(europe, removeWords, stopwords("english"))
+
+```
+
+Breaking down the arugments passed to tm_map, we find:
+
+- europe is our corpus
+- removeWords is a function being applied to each document in the europe corpus
+- stopwords is an argument being passed to removeWords. It is equivalent to `removeWords(stopwords("english"))`
+
+
+Now that we have an idea of how tm_map works, let's go a little crazy and strip the whitespace and stem the document. 
+
+```{r}
+
+europe_clean = tm_map(europe_clean, stripWhitespace)
+europe_clean = tm_map(europe_clean, stemDocument)
+
+substr(europe_clean[[1]]$content, 1, 500)
+
+```
+
+You can also use the `content_transformer` function to apply non-tm functions to your corpus. For example, lets use `gsub` to replace all instances of "spain" with "the glorious kingdom of spain". We will first use the `tolower` function to make sure cases aren't a problem. 
+
+```{r}
+
+glorious_spain = tm_map(europe, content_transformer(tolower))
+glorious_spain = tm_map(glorious_spain, content_transformer(gsub), pattern = "spain", replacement = "THE GLORIOUS KINGDOM OF SPAIN")
+
+substr(glorious_spain[[1]]$content, 1, 500)
+
+```
+
+You may be looking at how we did that text replacement with a bit of confusion, as `tm_map` does not have arguements for `pattern` and `replacement`. Remember that additional arguments in `tm_map` will be passed to whatever function is contained within `content_transformer`, in this case `gsub`.  
+
+## Using Document Term Matrix
+
+A document term matrix or term document matrix is a way of representing words as a table. The most simple implementation of this will have words as columns, the documents as rows, and if there is a presence of that word in that document, the cell will have a value of 1 or 0. In `tm`, the values represent the number of times a word appears in a document. Creating a document term matrix is quite easy in `tm`. 
+
+```{r}
+
+dtm = DocumentTermMatrix(europe_clean)
+
+inspect(dtm)
+
+```
+
+Document term matrixes are not the most efficient way to store data. Often times they are quite sparse, meaning that most values in the matrix are 0. [There are some interesting ways to represent sparse matrixes more compactly](https://www.geeksforgeeks.org/sparse-matrix-representation/), but that is outside of the scope of this tutorial.
+
+### Operations of Documnet-Term Matrixes
+
+Byeond the outside packages that require document term matrixes, `tm` also provides some useful helper functions to apply to dtm objects.
+
+**Find Frequent Terms**
+Find all terms that appear at least **x** number of times, in this case 300 times. 
+
+```{r}
+
+findFreqTerms(dtm, 300)
+
+```
+
+**Find Word Associations**
+Find all terms that correlate with a given term. You can also set the percent correlation. 
+
+```{r}
+
+findAssocs(dtm, "king", .8)
+```
+
