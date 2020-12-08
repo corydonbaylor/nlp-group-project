@@ -83,9 +83,9 @@ library(tidytext)
 library(dplyr)
 library(kableExtra)
 
-meta = gutenberg_download("1787") 
+hamlet = gutenberg_download("1787") 
 
-tokens = meta %>%
+tokens = hamlet %>%
   unnest_tokens(word, text) %>%
   anti_join(stop_words) 
 

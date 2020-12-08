@@ -46,7 +46,7 @@ Tokenizing by unigrams is easy! We'll use our text from Metamorphosis.
 
 ```{r, message=F, warning=F, error = F}
 
-# downloading metamorphasis
+# downloading metamorphosis
 meta = gutenberg_download("5200")
 
 unigrams = meta %>% unnest_tokens(word, text, token = "ngrams", n = 1)
@@ -78,7 +78,7 @@ bigrams%>%
 
 
 ## Removing Stop Words
-Stop words are words that are typically more important to the grammer of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
+Stop words are words that are typically more important to the grammar of a sentence rather than the meaning of a sentence. They are like helper words that help string together meaning without providing much meaning themselves. 
 
 For humans, more words are needed, but for NLP they add nothing. Let's look at that last sentence for example.
 
@@ -108,13 +108,13 @@ After tokenization and stop word removal, you can further prepare your text data
 
 Closely tied to text normalization is **morphology**, the study of the structure of words -- particularly, of the smaller parts of words that have meaning, called **morphemes**. Simple words don't have internal structure and only consist of one morpheme (e.g., "eat", "weak", "build"). Complex words consist of two or more morphemes (e.g., "worker", "quicker"). In the case of "worker", "er" is added to the root word "work" to create a noun. Morphological normalization is the process of breaking down words to their root forms. 
 
-Also important to understand is inflection. Inflection is the modification of words to express different grammatical categories. For example, for the root word "walk", we can added the inflection -ed to indicate that the walking occurred in the past or -ing to indicate that the walking is ongoing. 
+Also important to understand is inflection. Inflection is the modification of words to express different grammatical categories. For example, for the root word "walk", we can add the inflection -ed to indicate that the walking occurred in the past or -ing to indicate that the walking is ongoing. 
 
 The two most common ways of text normalization -- breaking words down to their core parts -- are stemming and lemmatization.
 
 ### Stemming
 
-**Stemming** is the process of reducing inflection in words to their "root" forms through the use of an algorithm. Put simply, an algorithm looks for patterns that typically indicates inflection like "ed" or "ing" and removes it in order to reduce the word to it's stem or root.
+**Stemming** is the process of reducing inflection in words to their "root" forms through the use of an algorithm. Put simply, an algorithm looks for patterns that typically indicate inflection like "ed" or "ing" and removes it in order to reduce the word to it's stem or root.
 
 While there are a number of stemming algorithms, we'll take a look at the results of the Snowball stemming algorithm, which comes built in to the R library `SnowballC`.
 
@@ -139,7 +139,7 @@ Our results are starting to look fishy, so to speak. While "fish", "fishing", an
 
 Herein lies an inherent limitation of stemming. While this approach is relatively  computationally efficient and more inclusive in terms of identifying similar words, it sometimes trims words down inappropriately, namely with overstemming or understemming.
 
-**Overstemming** is when too much of a word is cut off, resulting either in nonsensical stems, where the word has lost its meaning (e.g., "fisheri" above), or in words being resolved to the same stems when they shouldn't be. For example, "university", "universal", "universities", and "universe" could resolve to the stem "univers", instead of having "universal" and "universe" resolve to "univers" and "university" and "universities" resolve to "universi". 
+**Overstemming** is when too much of a word is cut off, resulting either in nonsensical stems, where the word has lost its meaning (e.g., "fisheri" above), or in words being resolved to the same stems when they shouldn't be. For example, "university", "universal", "universities", and "universe" could resolve to the stem "univers", instead of having "universal" and "universe" resolve to "univers", while "university" and "universities" resolve to "universi". 
 
 **Understemming** is when two words should be stemmed to the same root but are not. A common example is the words "alumnus", "alumni", and "alumnae" resolving to "alumnu", "alumni", and "alumna".
 
