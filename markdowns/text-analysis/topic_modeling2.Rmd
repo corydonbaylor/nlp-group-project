@@ -12,10 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Introduction to Topic Modeling with LDA
-Topic modeling is a way of dividing unstructured data (like text) into topics based on the words or word phrases that make up the dataset. With text data, a topic model will divide the words into natural groups even when we don't know what topics may be discussed in the text.
+Topic modeling is a way of dividing unstructured data (like text) into topics based on the words or word phrases that make up the dataset. With text data, a topic model will divide the words into natural groups, even when we don't know what topics may be discussed in the text.
 
 LDA, or Latent Dirichlet Allocation is a common type of probabalistic topic modeling that assigns a probability score (beta) to each word, indicating the probability for that word to belong to a topic in the dataset. Any document can consist of multiple topics, and any topic consists of multiple key words. LDA takes this into consideration when assigning probability scores. Any word could be part of multiple topics, but may have a higher beta score for topic A over topic B, meaning that it is more likely this word is part of topic A, but could possibly be part of topic B.
-
 
 Let's look at an example of topic modeling using LDA. We'll use a dataset from Kaggle made up of ~20k political news articles. To make our processing faster, we will only look at the first 5000 news articles in this example. 
 
@@ -84,15 +83,7 @@ data_word_counts.2%>%
 
 ```
 
-Using cast_dtm, we can convert our dataframe into a document term matrix (DTM), which is the format we will need in order to create an LDA topic model. A DTM is a matrix that contains documents and terms as dimensions. Let's unpack this a little bit as its a bit different than the dataframes we are used to. 
-
-Imagine you had a dataframe where the rows were words, the columns were the documents, and the values were how many times that word appeared in that document. You would have a lot of zeros in a dataframe like that right? Because a lot of words presumably don't appear in a lot of documents. Because our matrix (the dataframe) is mostly filled with zeros, it is called a sparse matrix. Sparse matrixes are very inefficent memory wise because we are using all this memory to store zeros instead of data!
-
-[There are a few ways to condense sparse arrays](https://www.geeksforgeeks.org/sparse-matrix-representation/) and dtm uses arrays. In our case, arrays uses three indexes to represent information. The row represents the word itself, the column represents the document, and the value represents the number of times it appears in that document. 
-
-This information is stored as three vectors: "i", "j", "v". I stands for the column or the document, J stands for the word, and the V stands for the frequency of that word in that document. 
-
-You can choose which ngram you want to tokenize by when creating your DTM. Here we are using unigrams.
+Using cast_dtm, we can convert our dataframe into a document term matrix (DTM), which is the format we will need in order to create an LDA topic model. A DTM is a matrix that contains documents and terms as dimensions. 
 
 ```{r, message=F, warning=F, error = F}
 data_dtm <- data_word_counts.2 %>%
@@ -107,7 +98,7 @@ Well in case it doesn't, let's keep going.
 
 Let's imagine a simplified view of how articles are written and read. There is only one writer, a robot, and only three things to write about: sports, fashion, and politics. When it comes to these topics, our audience is very mathematical because they are robots too. In fact, these topics are just a list of words and the probability that each word belongs to that topic. If an article is mostly made up of words that are most strongly associated with sports, than its a sports article. If its mostly made up of words that are associated with fashion, then its a fashion article.
 
-So to create an article, our author robot takes words from each topic list and uses a predefined recipe to create an article or document. Our robot audience does not care about the order of the words in article, just that they are the right mixture.
+So to create an article, our author robot takes words from each topic list and uses a predefined recipe to create an article or document. Our robot audience does not care about the order of the words in article, just that they are the right mixture (this makes it a bag of word model since the order doesn't matter).
 
 So what do we have here in this journalist hellscape? We have topics, which are just a list of words, and a robot author who mixes these words together in the right proportion to create a set of documents that our robot audience will love.
 

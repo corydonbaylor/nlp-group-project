@@ -1,6 +1,5 @@
 ---
 title: "Exploring Text Data"
-author: "Team Hanley NLP Working Group"
 output:
   html_document:
     toc: TRUE
@@ -62,10 +61,9 @@ wordcloud(tokens$word, max.words = 75, colors=brewer.pal(6, "Dark2"))
 
 ```
 
-## Practice Problems
+## Example 1: Bar Chart Frequencies {.tabset .tabset-fade}
 
-### Problem 1
-
+### Problem
 Load the text from Hamlet and create a bar chart depicting the 10 most frequent words from the text. 
 
 ** Hints **
@@ -102,12 +100,15 @@ ggplot(data = word_count)+
 
 ```
 
-### Problem 2
+## Example 2: Create a Wordcloud {.tabset .tabset-fade}
+
+### Problem
 
 Create a Wordcloud to display the most common words in Hamlet.
 
 ### Solution
 
+This is so painfully simple that I am almost sorry we have it as a practice problem!
 
 ```{r warning=FALSE, message=FALSE}
 wordcloud(tokens$word, max.words = 75, colors=brewer.pal(6, "Dark2"))
