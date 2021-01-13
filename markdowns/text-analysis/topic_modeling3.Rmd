@@ -11,7 +11,7 @@ It's easy to read a document and know what it's about. In fact, it's almost triv
 
 I think you can gather by the tone of my writing (as well as the fact that this a data science tutorial) that doing that would not the best way. It would be far better to use a machine learning method like topic modeling. 
 
-Specifically, what we will be learning is **Latent Dirichlet Analysis** or LDA for short. Before we dive into how the model works, we are going to cover it briefly at a high level. First, we will cover some of the more disappointing limitations of LDA. LDA will sort your documents into a given number of topics, but you have to provide the number of topics to sort into. So you cannot simply give the model a corpus of one million documents and then have it divide it into the "correct" number of topics. Instead you will say, here are one million documents. Please divide this into three groups. 
+Specifically, what we will be learning is **Latent Dirichlet Allocation** or LDA for short. Before we dive into how the model works, we are going to cover it briefly at a high level. First, we will cover some of the more disappointing limitations of LDA. LDA will sort your documents into a given number of topics, but you have to provide the number of topics to sort into. So you cannot simply give the model a corpus of one million documents and then have it divide it into the "correct" number of topics. Instead you will say, here are one million documents. Please divide this into three groups. 
 
 Second, LDA won't label the topics for you. So once you have those million documents divided into three groups, it won't be labeled as "science", "sports", and "politics". However, LDA will provide the words most associated with that topic, and from that you can determine what that topic is about. 
 
@@ -23,14 +23,14 @@ So now you know the limitations and advantages of LDA. But how exactly does it w
 
 Let's imagine we have four documents (in this cases sentences) that we want to sort into three topics, science, sports, and politics.  Yes, I know these aren't normal documents, but we are trying to keep it simple.
 
-1. Ball ball ball planet vote
+1. goal goal goal planet vote
 2. Vote planet planet vote vote 
-3. Planet planet star planet ball
-4. Planet star vote planet ball
+3. Planet planet star planet goal
+4. Planet star vote planet goal
 
 A good way to assign a topic to each sentence would be to see what percentage of each sentence is made of a word that belongs to a given topic. 
 
-So for example, the first sentence is mostly made up of the word ball, so we will place that into the sports category. The second sentence is mostly made up of the word vote, so we will place it in the politics topic, though only barely because it has the word planet twice as well. The last two are mostly related to science, so we put those in the science topic. 
+So for example, the first sentence is mostly made up of the word goal, so we will place that into the sports category. The second sentence is mostly made up of the word vote, so we will place it in the politics topic, though only barely because it has the word planet twice as well. The last two are mostly related to science, so we put those in the science topic. 
 
 In LDA, we won't place the sentences exclusively in one topic. Instead we will put them partially in each topic, depending on the composition of the sentence. We will use something called a dirichlet distribution to do this.
 
@@ -60,7 +60,7 @@ Looking at the four corners of the simplex where would you put the politics topi
 
 ![](tm_images/topic word.png)
 
-The orange ball represents the "Sports" topic, so we put it close to the "Ball" corner. The red ball represents "Politics", so we put it  close to the vote corner. The blue ball represents "science", so we put it between the star and planet corners. 
+The orange ball represents the "Sports" topic, so we put it close to the "Goal" corner. The red ball represents "Politics", so we put it  close to the "Vote" corner. The blue ball represents "science", so we put it between the "Star" and "Planet" corners. 
 
 ## Generating Articles 
 
@@ -92,10 +92,10 @@ Again, for each topic, imagine a box filled with balls but with each ball repres
 
 For each topic, we will draw out a ball giving us a word.
 
-1. Ball
+1. Goal
 2. Planet
-3. Ball
-4. Ball
+3. Goal
+4. Goal
 5. Planet
 
 We have now generated one document. We will repeat this process again another four times (or until we have as many documents as we had in our original corpus). Finally, we will compare our generated corpus to our real corpus and see how closely the generated documents match the real ones. 
