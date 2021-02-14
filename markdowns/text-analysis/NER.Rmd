@@ -1,0 +1,153 @@
+---
+title: "Named Entity Recognition"
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Named Entity Recognition 
+
+Does your computer know that Elvis Presley is a person? Does it know that Google is a company or that Central Park is a location? 
+
+No, of course, it doesn't. 
+
+Named Entity Recognition is a the process of naming and categorizing entities. Entities can be thought of as proper nouns. We can use part of speech tagging to found out if a word is a noun or verb. Now we can use Named Entity Recognition to determine if a word is a proper noun and perhaps, more usefully, what type of proper noun. 
+
+Let's return to Elvis. Elvis Presley is a proper noun, and he is a person. In that case, when we are entity tagging Elvis, the type of entity that we will be naming and categorizing as "people".  
+
+## Setting Up Your Workspace
+
+The dependencies include the `rJava` library and the `NLP` libraries. Both of these libraries must be installed and loaded before you load the `openNLP` library for your project. The `openNLP` library is an interesting beast. It provides an R interface to the Apache OpenNLP library, which is written in Java. 
+
+This is why you need to load the `rJava` ahead of it. Additionally, **you will need to have the Java programming language installed on you computer to complete this lesson.** 
+
+So now that we have explained what the dependencies are, lets load them in.
+
+```{r, warning=FALSE, message=FALSE}
+
+options(java.parameters = "- Xmx1024m")
+library(rJava)
+library(NLP)
+library(openNLP)
+
+install.packages("openNLPmodels.en", dependencies=TRUE, repos = "http://datacube.wu.ac.at/")
+package <- "openNLPmodels.en"
+model <- system.file("models/en-parser-chunking.bin",
+                     package = package)
+```
+
+Before we go more into the libraries we need to perform NER let's download and load in our data. We're going to use data from the Berkshire Hathaway Wikipedia page. 
+
+```{r, warning=FALSE, message=FALSE}
+
+library(getwiki)
+text = get_wiki("Berkshire Hathaway") 
+text = as.String(text)
+
+```
+
+## Annotating Word and Sentence Tokens
+
+Ok, at this point we have the data, libraries, and models loaded. Next we need to turn the text data into words and sentences. This is a prerequisite for Named Entity Recognition (NER), because the NER model we are using needs to know where the words and sentences are. 
+
+Annotators in `openNLP` are used to mark different things. The annotators we are about to use will mark sentences and words. This is very similar to tokenizing in `tidytext` or  `tm`. In fact, if you look at the function names, you will see the word token in them. 
+
+In order to pull out the named entities in our text, we will need to create annotations (or tokenize) for both words and sentences. The `Maxent_Sent_Token_Annotator` will divide divide our text into tokens based on sentences, and the `Maxent_Word_Token_Annotator` function will divide our text into tokens based on words. 
+
+```{r, warning=FALSE, message=FALSE}
+sentences = Maxent_Sent_Token_Annotator()
+words = Maxent_Word_Token_Annotator()
+```
+
+## Annotating Entity
+
+Another type of annotator provided by `openNLP` is an entity annotator (convenient since we are doing Named Entity Recognition). This annotator will mark/extract various entities from your text using a pretrained model. Remember earlier how we wondered if your computer knew if Elvis was a person? Well you computer doesn't, but `openNLP` does. 
+
+In fact, `openNLP` can recognize quite a few types of entities. It can recognize dates, locations, money, organizations, percentages, and people.
+
+In our example, we are going to annotate all the locations, people, organizations, and dates in our article.
+
+```{r, warning=FALSE, message=FALSE}
+locations = Maxent_Entity_Annotator(kind = "location") #annotate location
+people = Maxent_Entity_Annotator(kind = "person") #annotate person
+organizations = Maxent_Entity_Annotator(kind = "organization")
+dates = Maxent_Entity_Annotator(kind = "date")
+```
+
+The `annotate` function (this time from the `NLP` package) will again seem a little foreign to you if you are used to working in the tidyverse. 
+
+Its first argument is the text, and its second arguments are a list of functions. Each of these functions are annotators. The first two annotate our text into sentence and word tokens, and the rest of them annotate different entities. These are the functions we built earlier.
+
+The `annotate` is kind of a like a pipeline where we iteratively call annotators and apply them to the text, each time merging the new annotations with the old ones.
+
+```{r, warning=FALSE, message=FALSE}
+annotations = NLP::annotate(text, list( sentences, 
+                                        words, 
+                                        organizations))
+
+```
+
+The result is an annotation object. Let's take a look at what an annotation object contains with head. 
+
+```{r, warning=FALSE, message=FALSE}
+
+head(annotations)
+
+```
+
+That looks pretty close to a dataframe doesn't it? The type variable shows us what type of annotation was assigned. The start and end variables show us where in our text object the annotation is. 
+
+For example, `openNLP` recognized the 1st through 128th characters to be a sentence. 
+
+The only weird thing is that features variable. For our use case, we just want that to be the relevant part of the text. For the first observation, that should be the first sentence or the 1st through 128th characters in our string.
+
+Let's make our lives easier and transform the whole thing into a dataframe. We will use a for loop to build a more recognizable features variable. Some of the features may be too long to display correctly, but click on the `annotations_df` to view it if you are confused.   
+
+```{r, warning=FALSE, message=FALSE}
+
+annotations_df = as.data.frame(annotations)
+
+for (i in 1:nrow(annotations_df)){
+  annotations_df$features[i] = substr(text, annotations_df$start[i], annotations_df$end[i])
+}
+
+head(annotations_df)
+
+```
+
+## Using the Results
+
+Let's say your boss asked you to tell them which organizations were most commonly mentioned in a document. Now that you have a dataframe you can pretty easily pull and visualize this information.
+
+First we will filter down to organizations and provide a count.
+
+```{r, warning=FALSE, message=FALSE}
+
+library(dplyr)
+library(ggplot2)
+
+organizations = annotations_df%>%
+  filter(type == "entity")%>%
+  group_by(features)%>%
+  summarise(count = n())%>%
+  arrange(desc(count))%>%
+  slice(1:5)%>%
+  mutate(features = as.character(features))
+
+```
+
+Next, we can make a simple `ggplot` like so:
+
+```{r, warning=FALSE, message=FALSE}
+
+ggplot(organizations)+
+  geom_bar(aes(x = features, y = count), stat = 'identity')+
+  theme_minimal()
+
+```

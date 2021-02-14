@@ -4,6 +4,7 @@ output:
   html_document:
     toc: TRUE
     toc_depth: 2
+    self_contained: false
 ---
 
 # What is LDA?
@@ -46,7 +47,9 @@ Essentially the corners are the topics and the points inside the triangle are th
 
 Let's see where our four documents would end up. Keep in mind that this is totally at your discretion. In fact, the algorithm will actually be doing it randomly, but more on that later. 
 
+<div class = 'center' style = 'width: 80%'>
 ![](tm_images/topics_docs.png)
+</div>
 
 As you can see, since the first document is mostly about sports, its mostly in the sports corner. The second document is mostly about science with some politics sprinkled in, so it's between the science and politics corner.
 
