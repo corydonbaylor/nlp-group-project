@@ -8,17 +8,17 @@ output:
 ---
 
 # What is LDA?
-It's easy to read a document and know what it's about. In fact, it's almost trivial. But imagine you have thousands of documents. No, imagine you have millions of documents, and you want to know organize those documents into topics. Certainly the best way wouldn't be to read every single document and sort it into topics would it?
+It's easy to read a document and know what it's about. In fact, it's almost trivial. But imagine you have thousands of documents. No, imagine you have millions of documents and you want to know how to organize those documents into topics. Certainly the best way wouldn't be to read every single document and sort it into topics, would it?
 
 I think you can gather by the tone of my writing (as well as the fact that this a data science tutorial) that doing that would not the best way. It would be far better to use a machine learning method like topic modeling. 
 
-Specifically, what we will be learning is **Latent Dirichlet Allocation** or LDA for short. Before we dive into how the model works, we are going to cover it briefly at a high level. First, we will cover some of the more disappointing limitations of LDA. LDA will sort your documents into a given number of topics, but you have to provide the number of topics to sort into. So you cannot simply give the model a corpus of one million documents and then have it divide it into the "correct" number of topics. Instead you will say, here are one million documents. Please divide this into three groups. 
+Specifically, what we will be learning is **Latent Dirichlet Allocation**, or LDA for short. Before we dive into how the model works, we are going to cover it briefly at a high level. First, we will cover some of the more disappointing limitations of LDA. LDA will sort your documents into a given number of topics, but you have to provide the number of topics to sort into. So you cannot simply give the model a corpus of one million documents and then have it divide it into the "correct" number of topics. Instead you will say something like, "here are one million documents. Please divide this into three groups." 
 
 Second, LDA won't label the topics for you. So once you have those million documents divided into three groups, it won't be labeled as "science", "sports", and "politics". However, LDA will provide the words most associated with that topic, and from that you can determine what that topic is about. 
 
 Finally, keep in mind that LDA is a mixed membership model. This means that a document will be classified as belonging *mostly* to a particular topic. So for example, a given document might be classified as 90 percent about Topic A, 7 percent about Topic B, and 3 percent about Topic C. 
 
-So now you know the limitations and advantages of LDA. But how exactly does it work? First, we will provide an intuitive explanation of model, and then we will show you had to code an example.
+So now you know the limitations and advantages of LDA. But how exactly does it work? First, we will provide an intuitive explanation of model, and then we will show you how to code an example.
 
 ## The Documents
 
@@ -37,7 +37,7 @@ In LDA, we won't place the sentences exclusively in one topic. Instead we will p
 
 ## Document-Topic Dirichlet Distribution
 
-Let's take a second to explain what a Dirichlet distribution is. Imagine you have a three cornered room where you a throwing a party for your documents. In one corner, you put out snacks for sports fans, in another you put out lab equipment for science freaks, and in the final quarter you put out a newspaper for politics junkies. Depending what a document is about, it will be attracted to one or more of the corners.
+Let's take a second to explain what a Dirichlet distribution is. Imagine you have a three cornered room where you a throwing a party for your documents. In one corner, you put out snacks for sports fans, in another you put out lab equipment for science freaks, and in the final corner you put out a newspaper for politics junkies. Depending what a document is about, it will be attracted to one or more of the corners.
 
 ![](tm_images/topics.png)
 
@@ -55,7 +55,7 @@ As you can see, since the first document is mostly about sports, its mostly in t
 
 ### Word-Topic Dirichlet Distribution 
 
-Next we are going to create a dirichlet distribution where the corners are the words and the points are the topics. Because we have *four words*, we are going to use a *four point simplex*. This is also the maximum number of points I can represent graphically (funny how that works out).
+Next we are going to create a dirichlet distribution where the corners are the words and the circles are the topics. Because we have *four words*, we are going to use a *four point simplex*. This is also the maximum number of corners I can represent graphically (funny how that works out).
 
 This works the same way as the previous example. The more attracted a topic is to a word, the closer it will go to that corner. If it's pulled to multiple corners, it will end up somewhere in the middle. 
 
@@ -63,21 +63,21 @@ Looking at the four corners of the simplex where would you put the politics topi
 
 ![](tm_images/topic word.png)
 
-The orange ball represents the "Sports" topic, so we put it close to the "Goal" corner. The red ball represents "Politics", so we put it  close to the "Vote" corner. The blue ball represents "science", so we put it between the "Star" and "Planet" corners. 
+The orange ball represents the "Sports" topic, so we put it close to the "Goal" corner. The red circle represents "Politics", so we put it  close to the "Vote" corner. The blue circle represents "science", so we put it between the "Star" and "Planet" corners. 
 
 ## Generating Articles 
 
 We are going to use the two distributions we just created to generate four new articles. After that, we will then see how closely those articles match to our original articles to decide how well our model worked. 
 
-To create the articles, we are going to generate a series of topics, which in turn we will use to generate a series of words. The generated topics will come from each point in our document-topic distributions. 
+To create the articles, we are going to generate a series of topics, which we will then use to generate a series of words. The generated topics will come from each point in our document-topic distributions. 
 
 This is all getting a bit abstract. Lets look at an example. 
 
-Look at the first document. It is 60 percent about sports, 20 percent about science, and 20 percent about politics. Now imagine a box with ten balls inside.  Six of those balls (the orange ones) will represent sports. Two balls (the blue ones) will represent science, and two balls (the red ones) will represent politics. 
+Look at the first document. It is 60 percent about sports, 20 percent about science, and 20 percent about politics. Now imagine a box with ten circles inside.  Six of those circles (the orange ones) will represent sports. Two circles (the blue ones) will represent science, and two circles (the red ones) will represent politics. 
 
 ![](tm_images/balls.png)
 
-Since we are trying to create a sentence with five words, we are going to pick out five balls from this box. Because there is an element of chance, let's say we pick out these five topics:
+Since we are trying to create a sentence (representing an article) with five words, we are going to pick out five circles from this box. Because there is an element of chance, let's say we pick out these five topics:
 
 1. Sports
 2. Science
@@ -87,13 +87,13 @@ Since we are trying to create a sentence with five words, we are going to pick o
 
 Now using the distributions from our word-topic simplex, we are going to assign a word to each topic that we just generated.  
 
-Remember, where you placed the topic within the word simplex will determine the mixture of words in that topic. The algorithm will place the topic randomly (again, more on that later), but for now, let's assume that we placed the topics like you see below. 
+Remember, where you placed the topic within the word simplex will determine the mixture of words in that topic. The algorithm will place the topic randomly (again, more on that later), and let's assume that random placement ends up looking like the diagram below.
 
-Again, for each topic, imagine a box filled with balls but with each ball representing a word instead of a topic this time. For example, the science topic could contain 40 percent balls that represent star and 60 percent balls that represent planet. 
+Again, for each topic, imagine a box filled with circles, but with each circle representing a word instead of a topic this time. For example, the science topic could contain 40 percent circles that represent "star"" and 60 percent circles that represent "planet." 
 
 ![](tm_images/word_balls.png)
 
-For each topic, we will draw out a ball giving us a word.
+For each topic, we will draw out a circle giving us a word.
 
 1. Goal
 2. Planet
@@ -101,7 +101,7 @@ For each topic, we will draw out a ball giving us a word.
 4. Goal
 5. Planet
 
-We have now generated one document. We will repeat this process again another four times (or until we have as many documents as we had in our original corpus). Finally, we will compare our generated corpus to our real corpus and see how closely the generated documents match the real ones. 
+We have now generated one document. We will repeat this process again another three times (or until we have as many documents as we had in our original corpus). Finally, we will compare our generated corpus to our real corpus and see how closely the generated documents match the real ones. 
 
 ## Now for the Machine Learning
 
@@ -185,7 +185,7 @@ top_terms%>%
   mutate(term = reorder_within(term, beta, topic)) %>%
   ggplot()+
   geom_col(aes(term, beta, fill=topic), show.legend = FALSE)+
-  labs(x = NULL, y = "tf-idf") +
+  labs(x = NULL, y = "beta") +
   facet_wrap(~topic, ncol = 2, scales = "free") +
   coord_flip()+
   scale_x_reordered() +
@@ -193,27 +193,28 @@ top_terms%>%
 
 ```
 
-You can see the first topic appears to be about math, the second appears to be a mix of Utah and the French impressionists, and the final topic is about Virginia. Ideally, the third group would have had a good mix of words from the Virginia article and the Utah article and the second would have just be the painters, but you can't have everything.
+You can see the first topic appears to be about math, the second appears to be a mix of Virginia and the French impressionists, and the final topic is about Utah's population statistics. Ideally, the third group would have had a good mix of words from the Virginia article and the Utah article and the second would have just be the painters, but you can't have everything.
 
 ## Interpreting the Document Topic Distribution
 
 Once you know what the topics are about, you will want to know which documents belong to which topic. 
 
-Using the `tidy()` function, we can find our document-topic distribution. In R, this is called the "gamma" matrix. Because we have seven documents to categorize, we are going to look the top seven topics that the model associated with documents.
+Using the `tidy()` function, we can find our document-topic distribution. In R, this is called the "gamma" matrix. We are going to look the distribution of our 3 topics within each of our 7 documents.
 
 ```{r, message=F, warning=F, error = F}
 doc_topics <- tidy(data_lda, matrix = "gamma")
 
 doc_topics %>%
-  arrange(desc(gamma))%>%
+  group_by(document) %>%
+  arrange(document, desc(gamma))%>%
   slice(1:7)%>%
-  arrange(topic)%>%
+  ungroup() %>%
   kable()%>%
   kable_styling("striped")
 
 ```
 
-Interestingly, you can see that the model did a pretty good job organizing the documents. It did put Utah in with the impressionist painters, but it is a beautiful state, so we will let it slide.
+Interestingly, you can see that the model did a pretty good job organizing the documents. It did put Virginia in with the impressionist painters, but it is a beautiful state, so we will let it slide.
 
 
 
