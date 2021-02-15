@@ -1,0 +1,103 @@
+---
+title: "How to create a GloVe (Machine learning) Model in R
+output:
+  html_document:
+    toc: TRUE
+    toc_depth: 2
+    self_contained: false
+---
+
+
+#What are word embeddings?
+
+Word embeddings are a set of techniques in which individual words are represented as vectors in a predefined vector space. Each word is mapped to one vector and the vector values are learned in a way that resembles a neural network. Popular algorithms categorized under word embedding include Embedding Layer, Word2Vec, and GloVe. For this section, we will be training and implementing a GloVe algorithm. 
+
+##So what is Glove?
+The Global Vectors for Word Representation (GloVe) algorithm is an unsupervised learning model used to obtain vector representations for words. GloVe maps words in such a way that the distance between words corresponds to semantic similarity. 
+
+The word vectors created using the GloVe algorithm can estimate the mathematical relationship between words based on how often the words appear in a similar context. The word vector spaces produced can be added and subtracted from one another. 
+
+For Example, theoretically if you take the vector for "king" and subtract "Man" and "add Women" you should get close to the vector space value of "Queen".
+
+More information about GloVe can be found here --> https://nlp.stanford.edu/projects/glove/
+
+##Let's get started. 
+
+Let's start by loading the "text2vec" library to get access to the GloVe model.Afterward, you can get the dataset from http://mattmahoney.net/dc/text8.zip". The code set below will download and load the data in one step.
+
+```{r}
+library(text2vec)
+text8_file = "~/text8"
+if (!file.exists(text8_file)) {
+  download.file("http://mattmahoney.net/dc/text8.zip", "~/text8.zip")
+  unzip ("~/text8.zip", files = "text8", exdir = "~/")
+}
+wiki = readLines(text8_file, n = 1, warn = FALSE)
+```
+
+Now that we have our data, we can create tokens using the "space_tokenizer()" function. After creating tokens we will need to create itoken using the "itoken()" functions and then create a vocabulary using the "create_vocabulary()" function. 
+
+
+```{r}
+# Create iterator over tokens
+tokens <- space_tokenizer(wiki)  ## This family of function creates iterators over input objects in order to create vocabularies, or DTM and TCM matrices. iterators usually used in following functions
+
+# Create vocabulary. Terms will be unigrams (simple words).
+it = itoken(tokens, progressbar = FALSE)
+vocab <- create_vocabulary(it)
+```
+
+After we have created our vocabulary we have to eliminate the uncommon words. We can do this by using the "prune_vocabulary" function. We will reduce words that appear less than five times.
+
+Once the vocabulary is cleaned we need to vectorize the words. This can be done using the "vocab_vectorizer" and feeding in your cleaned vocabulary as a parameter. 
+
+```{r}
+vocab <- prune_vocabulary(vocab, term_count_min = 5L)
+vectorizer <- vocab_vectorizer(vocab)
+```
+
+Following the vectorization of the words, you will need to create TCM (term-co-occurrence matrix). This can be done using the "create_tcm" function. 
+
+```{r}
+tcm <- create_tcm(it, vectorizer, skip_grams_window = 5L)
+```
+
+After Creating the TCM we are finally ready to create and train our GloVe model.  
+
+First you will need to initiate the model using the "GlobalVectors$new" function.
+
+Then you can fit transform the model using the "glove$fit_transform" function. 
+Please be aware that -- depending on the parameters that are chosen for the "glove$fit_transform" -- this be very time- and memory-intensive. 
+
+```{r}
+glove = GlobalVectors$new(rank = 50, x_max = 10)
+shakes_wv_main = glove$fit_transform(tcm, n_iter = 100, convergence_tol = 0.001)
+```
+
+With the model trained and fitted we now need to create the individual word vectors. 
+
+```{r}
+wv_context = glove$components
+word_vectors = shakes_wv_main  + t(wv_context)
+```
+
+With all the individual words having been converted into vectored space we can now mathematically measure the similarity between words. 
+
+We know that "Paris" is the capital of "France" and "Berlin" is the capital of "Germany". Therefore the difference between "Paris" and "France" should be similar to "Germany" and "Berlin" in terms of vectorized space. So if we take the vector space of "Paris" and subtract the vector space of France and add the vector space of Germany we should get close to the value of the vector space of Berlin. 
+
+
+```{r}
+berlin = word_vectors["paris", , drop = FALSE] -
+  word_vectors["france", , drop = FALSE] +
+  word_vectors["germany", , drop = FALSE]
+```
+
+If we want to find the closest values to the vector space of the Berlin equation we created above, we will need to use cosine similarity. 
+
+```{r}
+berlin_cos_sim = sim2(x = word_vectors, y = berlin, method = "cosine", norm = "l2")
+head(sort(berlin_cos_sim[,1], decreasing = TRUE), 5)
+```
+
+
+
