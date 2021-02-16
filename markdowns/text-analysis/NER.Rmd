@@ -111,14 +111,16 @@ Let's make our lives easier and transform the whole thing into a dataframe. We w
 
 ```{r, warning=FALSE, message=FALSE}
 
+library(kableExtra)
+
 annotations_df = as.data.frame(annotations)
 
 for (i in 1:nrow(annotations_df)){
   annotations_df$features[i] = substr(text, annotations_df$start[i], annotations_df$end[i])
 }
 
-head(annotations_df)
-
+kable(head(annotations_df), format = "html")%>%
+  kable_styling("striped")
 ```
 
 ## Using the Results

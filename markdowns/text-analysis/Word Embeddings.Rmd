@@ -10,29 +10,62 @@ output:
 
 #What are word embeddings?
 
-Word embeddings are a set of techniques in which individual words are represented as vectors in a predefined vector space. Each word is mapped to one vector and the vector values are learned in a way that resembles a neural network. Popular algorithms categorized under word embedding include Embedding Layer, Word2Vec, and GloVe. For this section, we will be training and implementing a GloVe algorithm. 
+Have you ever wanted to compare apples and oranges? How similar are they really? One common measure of similarity in mathematics is distance. For example, you could say that the number 4 is more similar to the number 5 than 20 because it is *closer* to 5 than 20. 
 
-##So what is Glove?
+But whats the distance between the word apple and the word orange?
+
+Enter word embeddings.
+
+In its simplest terms, Word Embeddings are representing words with numbers with the implicit goal of having similar words be represented by similar numbers. 
+
+More specifically, words are represented by vectors. Let's take the previous sentence and convert it into a character vector
+
+```{r}
+
+words = c("more", "specifically", "words", "are", "represented", "by", "vectors")
+
+```
+
+Now we got a character vector. If we wanted to represent the word "more" in this character vector mathematically, we could do the following:
+
+```{r}
+
+more = c(1, 0, 0, 0, 0, 0, 0)
+
+```
+
+The first element in our "more" vector is 1 because the first element in our words vector is "more". 
+
+This is just a taste of how one might represent words and sentences as vectors and is meant to give you a baseline/mental image as we add complexity.
+
+In this lesson, we will be using pretrained models for word embeddings. Popular algorithms categorized under word embedding include Embedding Layer, Word2Vec, and GloVe. For this section, we will be training and implementing a GloVe algorithm. 
+
+## So what is Glove?
+
 The Global Vectors for Word Representation (GloVe) algorithm is an unsupervised learning model used to obtain vector representations for words. GloVe maps words in such a way that the distance between words corresponds to semantic similarity. 
 
 The word vectors created using the GloVe algorithm can estimate the mathematical relationship between words based on how often the words appear in a similar context. The word vector spaces produced can be added and subtracted from one another. 
 
-For Example, theoretically if you take the vector for "king" and subtract "Man" and "add Women" you should get close to the vector space value of "Queen".
+For example, theoretically if you take the vector for "king" and subtract "Man" and "add Women" you should get close to the vector space value of "Queen".
 
 More information about GloVe can be found here --> https://nlp.stanford.edu/projects/glove/
 
-##Let's get started. 
+## Data Prep for GloVe
 
-Let's start by loading the "text2vec" library to get access to the GloVe model.Afterward, you can get the dataset from http://mattmahoney.net/dc/text8.zip". The code set below will download and load the data in one step.
+Let's start by loading the "text2vec" library to get access to the GloVe model. Additionally, we are going to be a working with a large dataset of over 200,000 highly compressed Wikipedia articles called text8. text8 was originally compiled and hosted at http://mattmahoney.net/dc/textdata.
+
+Put the text8.zip in the same folder as you are working in order to follow along (double check your working directory if you cant get it loaded in).
 
 ```{r}
+
 library(text2vec)
+
 text8_file = "~/text8"
-if (!file.exists(text8_file)) {
-  download.file("http://mattmahoney.net/dc/text8.zip", "~/text8.zip")
-  unzip ("~/text8.zip", files = "text8", exdir = "~/")
-}
+
+unzip ("~/text8.zip", files = "text8", exdir = "~/")
+
 wiki = readLines(text8_file, n = 1, warn = FALSE)
+
 ```
 
 Now that we have our data, we can create tokens using the "space_tokenizer()" function. After creating tokens we will need to create itoken using the "itoken()" functions and then create a vocabulary using the "create_vocabulary()" function. 
@@ -40,16 +73,16 @@ Now that we have our data, we can create tokens using the "space_tokenizer()" fu
 
 ```{r}
 # Create iterator over tokens
-tokens <- space_tokenizer(wiki)  ## This family of function creates iterators over input objects in order to create vocabularies, or DTM and TCM matrices. iterators usually used in following functions
+tokens <- space_tokenizer(wiki) 
 
 # Create vocabulary. Terms will be unigrams (simple words).
 it = itoken(tokens, progressbar = FALSE)
 vocab <- create_vocabulary(it)
 ```
 
-After we have created our vocabulary we have to eliminate the uncommon words. We can do this by using the "prune_vocabulary" function. We will reduce words that appear less than five times.
+After we have created our vocabulary, we have to eliminate the uncommon words. We can do this by using the "prune_vocabulary" function. We will reduce words that appear less than five times.
 
-Once the vocabulary is cleaned we need to vectorize the words. This can be done using the "vocab_vectorizer" and feeding in your cleaned vocabulary as a parameter. 
+Once the vocabulary is cleaned, we need to vectorize the words. This can be done using the "vocab_vectorizer" and feeding in your cleaned vocabulary as a parameter. 
 
 ```{r}
 vocab <- prune_vocabulary(vocab, term_count_min = 5L)
@@ -64,10 +97,12 @@ tcm <- create_tcm(it, vectorizer, skip_grams_window = 5L)
 
 After Creating the TCM we are finally ready to create and train our GloVe model.  
 
+## Using the GloVe Model
+
 First you will need to initiate the model using the "GlobalVectors$new" function.
 
 Then you can fit transform the model using the "glove$fit_transform" function. 
-Please be aware that -- depending on the parameters that are chosen for the "glove$fit_transform" -- this be very time- and memory-intensive. 
+Please be aware that -- depending on the parameters that are chosen for the "glove$fit_transform" -- this will be very time- and memory-intensive. Depening on your computer, this can take over 30 minutes.
 
 ```{r}
 glove = GlobalVectors$new(rank = 50, x_max = 10)
